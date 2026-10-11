@@ -1,0 +1,7 @@
+date,title,type,applicableCampus,applicableBatch,isTeachingSuspended
+2026-08-15,Independence Day,HOLIDAY,ALL,ALL,true
+2026-10-02,Mahatma Gandhi Jayanti,HOLIDAY,ALL,ALL,true
+2026-10-20,Dussehra Holiday,HOLIDAY,ALL,ALL,true
+2026-11-09,Diwali Break Day 1,HOLIDAY,ALL,ALL,true
+2026-11-10,Diwali Break Day 2,HOLIDAY,ALL,ALL,true
+2026-11-14,Childrens Day Tech Fest,EVENT,HI-Tech,ALL,false

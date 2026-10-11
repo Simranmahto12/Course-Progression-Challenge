@@ -1,0 +1,24 @@
+{
+  "name": "course-progression-tracker",
+  "version": "1.0.0",
+  "description": "Course Progression Tracker for Mirai School of Technology (MSOT), BTech CSE (AI/ML)",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\"",
+    "build": "npm run build --workspace=backend && npm run build --workspace=frontend",
+    "start": "node backend/dist/server.js",
+    "test": "npm run test --workspace=backend",
+    "test:coverage": "npm run test:coverage --workspace=backend",
+    "test:load": "node tests/load/load-test.js",
+    "db:migrate": "npm run prisma:migrate --workspace=backend",
+    "db:generate": "npm run prisma:generate --workspace=backend",
+    "db:seed": "npm run seed --workspace=backend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

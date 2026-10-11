@@ -1,0 +1,5 @@
+subjectCode,unit,sequence,topicName,description,plannedHours,examScopes,prerequisites
+SUB101,Unit 1: Introduction,1,Overview and Environment Setup,Core setup and toolchains,2.0,SESSIONAL_1;MID_TERM;END_TERM,Basic Programming
+SUB101,Unit 1: Introduction,2,Fundamental Concepts,Foundations and initial architectures,3.0,SESSIONAL_1;MID_TERM;END_TERM,Overview
+SUB101,Unit 2: Core Algorithms,3,Algorithm Design & Analysis,Theoretical modeling and analysis,3.5,MID_TERM;END_TERM,Fundamental Concepts
+SUB101,Unit 2: Core Algorithms,4,Optimization Techniques,Gradient techniques and approximations,2.5,MID_TERM;END_TERM,Algorithm Design
