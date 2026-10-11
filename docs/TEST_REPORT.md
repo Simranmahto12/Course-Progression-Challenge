@@ -25,7 +25,7 @@
 ## 2. Seeded Subjects Progression Verification
 
 ### Subject 1: "DSA in c++" (CS501)
-- **Assigned Faculty:** Dr. Rajesh Kumar (`faculty1@mirai.edu.in`)
+- **Assigned Faculty:** Vishal Rathee (`faculty1@mirai.edu.in`)
 - **Total Topics:** 12 topics across 4 Units (Foundations, Linear Structures, Trees, Graphs)
 - **Total Planned Hours:** $44.50\text{h}$
 - **Delivered Topics:** Topics 1 to 5 (100% completed) + Topic 6 (60% in-progress)
@@ -40,7 +40,7 @@
 - **Status Classification:** $1.34 \ge 1.15 \rightarrow$ **`ON TRACK`**
 
 ### Subject 2: "Web development" (CS502)
-- **Assigned Faculty:** Prof. Anita Sharma (`faculty2@mirai.edu.in`)
+- **Assigned Faculty:** Varun Sir (`faculty2@mirai.edu.in`)
 - **Total Topics:** 11 topics across 4 Units (Frontend, React, Full-Stack APIs, Testing)
 - **Total Planned Hours:** $40.00\text{h}$
 - **Delivered Topics:** Topics 1 to 4 (100% completed) + Topic 5 (50% in-progress)

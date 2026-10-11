@@ -176,14 +176,14 @@ export async function seedCoreAcademicData() {
     },
     {
       email: 'faculty1@mirai.edu.in',
-      name: 'Dr. Rajesh Kumar',
+      name: 'Vishal Rathee',
       role: 'FACULTY',
       campusId: campuses['HI-Tech'].id,
       batchId: null,
     },
     {
       email: 'faculty2@mirai.edu.in',
-      name: 'Prof. Anita Sharma',
+      name: 'Varun Sir',
       role: 'FACULTY',
       campusId: campuses['HI-Tech'].id,
       batchId: null,
@@ -209,6 +209,7 @@ export async function seedCoreAcademicData() {
     users[u.email] = await prisma.user.upsert({
       where: { email: u.email },
       update: {
+        name: u.name,
         role: u.role,
         campusId: u.campusId,
         batchId: u.batchId,
@@ -583,7 +584,7 @@ export async function seedSubjectsAndProgress(academicData: any) {
       recipientUserId: users['manager.hitech@mirai.edu.in'].id,
       type: 'CAMPUS_MANAGER_ESCALATION',
       title: 'ESCALATION: Missing Log > 48h - CS502 Web development',
-      message: 'Class for Web development scheduled on ' + unloggedOldDateStr + ' by Prof. Anita Sharma has not been logged for over 48 hours. Campus manager intervention required.',
+      message: 'Class for Web development scheduled on ' + unloggedOldDateStr + ' by Varun Sir has not been logged for over 48 hours. Campus manager intervention required.',
       status: 'SENT',
       hoursUnlogged: 96.0,
       scheduledDate: escalatedSession.sessionDate,

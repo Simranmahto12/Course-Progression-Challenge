@@ -103,8 +103,8 @@ All accounts are pre-configured in seed data with password: `mirai123`
 | **Admin** | `admin@mirai.edu.in` | Global (All) | Program Director, cross-campus dashboards, thresholds |
 | **Campus Manager** | `manager.hitech@mirai.edu.in` | HI-Tech | Campus operations, timetable, 48h escalation alerts |
 | **Campus Manager** | `manager.ratnam@mirai.edu.in` | Ratnam | Campus operations for Ratnam campus |
-| **Faculty 1** | `faculty1@mirai.edu.in` | HI-Tech | Dr. Rajesh Kumar (Assigned: **DSA in c++**) |
-| **Faculty 2** | `faculty2@mirai.edu.in` | HI-Tech | Prof. Anita Sharma (Assigned: **Web development**) |
+| **Faculty 1** | `faculty1@mirai.edu.in` | HI-Tech | Vishal Rathee (Assigned: **DSA in c++**) |
+| **Faculty 2** | `faculty2@mirai.edu.in` | HI-Tech | Varun Sir (Assigned: **Web development**) |
 | **Faculty 3** | `faculty3@mirai.edu.in` | Ratnam | Dr. Vikram Verma |
 | **Student** | `student@mirai.edu.in` | HI-Tech | Aarav Patel (BTech CSE AI/ML Batch A read-only portal) |
 
