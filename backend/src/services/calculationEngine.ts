@@ -5,7 +5,7 @@ import {
   RollupResult,
   SaturdayRule,
 } from '../types/index.js';
-import { CalendarEngine, CalendarHoliday, TimetableSlot } from './calendarEngine.js';
+import { CalendarEngine, CalendarHoliday, TimetableSlot, CancelledSessionInput } from './calendarEngine.js';
 
 export interface TopicModel {
   id: string;
@@ -67,7 +67,8 @@ export class CalculationEngine {
     campusId?: string | null,
     batchId?: string | null,
     referenceDate: Date = new Date(),
-    thresholds: ThresholdConfig = DEFAULT_THRESHOLDS
+    thresholds: ThresholdConfig = DEFAULT_THRESHOLDS,
+    cancelledSessions: CancelledSessionInput[] = []
   ): SubjectCalculationResult {
     const todayStr = CalendarEngine.formatDateOnly(referenceDate);
 
@@ -124,7 +125,8 @@ export class CalculationEngine {
       timetableSlots,
       holidays,
       campusId,
-      batchId
+      batchId,
+      cancelledSessions
     );
 
     // 5. Buffer ratio = availableHours / remainingHours
@@ -186,7 +188,8 @@ export class CalculationEngine {
     campusId?: string | null,
     batchId?: string | null,
     referenceDate: Date = new Date(),
-    thresholds: ThresholdConfig = DEFAULT_THRESHOLDS
+    thresholds: ThresholdConfig = DEFAULT_THRESHOLDS,
+    cancelledSessions: CancelledSessionInput[] = []
   ): ExamReadinessResult {
     // Filter topics in scope for this exam
     const inScopeTopics = topics.filter((t) => {
@@ -229,7 +232,8 @@ export class CalculationEngine {
       timetableSlots,
       holidays,
       campusId,
-      batchId
+      batchId,
+      cancelledSessions
     );
 
     let status: ProgressStatus = 'ON TRACK';

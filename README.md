@@ -96,7 +96,7 @@ npm run dev
 
 ## 👥 Demo Login Personas
 
-All accounts are pre-configured in seed data with password: `mirai123`
+All accounts are pre-configured in seed data with password: `mirai123`. Sign in with an account below or use the role-specific demo buttons on the login screen. New sessions open at the sign-in screen; the app no longer signs in as a demo user automatically.
 
 | Role | Email | Campus | Description |
 |---|---|---|---|
@@ -104,11 +104,11 @@ All accounts are pre-configured in seed data with password: `mirai123`
 | **Campus Manager** | `manager.hitech@mirai.edu.in` | HI-Tech | Campus operations, timetable, 48h escalation alerts |
 | **Campus Manager** | `manager.ratnam@mirai.edu.in` | Ratnam | Campus operations for Ratnam campus |
 | **Faculty 1** | `faculty1@mirai.edu.in` | HI-Tech | Vishal Rathee (Assigned: **DSA in c++**) |
-| **Faculty 2** | `faculty2@mirai.edu.in` | HI-Tech | Varun Sir (Assigned: **Web development**) |
+| **Faculty 2** | `faculty2@mirai.edu.in` | HI-Tech | Varun Kumar Sharma (Assigned: **Web development**) |
 | **Faculty 3** | `faculty3@mirai.edu.in` | Ratnam | Dr. Vikram Verma |
 | **Student** | `student@mirai.edu.in` | HI-Tech | Aarav Patel (BTech CSE AI/ML Batch A read-only portal) |
 
-> 💡 **Tip:** In the frontend header, use the 1-click **Role Switcher** pills (`Admin`, `Manager`, `Faculty`, `Student`) to switch identities instantly.
+> 💡 **Tip:** After signing in, use the frontend header's 1-click **Role Switcher** pills (`Admin`, `Manager`, `Faculty`, `Student`) to switch demo identities instantly.
 
 ---
 

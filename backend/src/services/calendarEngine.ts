@@ -22,6 +22,11 @@ export interface TopicInput {
   status: string;
 }
 
+export interface CancelledSessionInput {
+  sessionDate: Date | string;
+  durationHours: number;
+}
+
 export interface DayStepExplanation {
   date: string;
   weekday: number;
@@ -120,7 +125,8 @@ export class CalendarEngine {
     timetableSlots: TimetableSlot[],
     holidays: CalendarHoliday[],
     campusId?: string | null,
-    batchId?: string | null
+    batchId?: string | null,
+    cancelledSessions: CancelledSessionInput[] = []
   ): number {
     let current = new Date(startDate);
     current.setHours(0, 0, 0, 0);
@@ -132,8 +138,16 @@ export class CalendarEngine {
     while (current <= end) {
       const teachingCheck = this.isTeachingDay(current, rule, holidays, campusId, batchId);
       if (teachingCheck.isTeaching) {
+        const dateStr = this.formatDateOnly(current);
         const weekday = current.getDay();
-        const hoursOnDay = this.getScheduledHoursForWeekday(weekday, timetableSlots);
+        let hoursOnDay = this.getScheduledHoursForWeekday(weekday, timetableSlots);
+
+        // Deduct cancelled session hours on this date
+        const cancelledHoursToday = cancelledSessions
+          .filter((cs) => this.formatDateOnly(cs.sessionDate) === dateStr)
+          .reduce((sum, cs) => sum + cs.durationHours, 0);
+
+        hoursOnDay = Math.max(0, hoursOnDay - cancelledHoursToday);
         totalAvailableHours += hoursOnDay;
       }
       current.setDate(current.getDate() + 1);
@@ -154,7 +168,8 @@ export class CalendarEngine {
     topics: TopicInput[],
     holidays: CalendarHoliday[],
     campusId?: string | null,
-    batchId?: string | null
+    batchId?: string | null,
+    cancelledSessions: CancelledSessionInput[] = []
   ): {
     topicPlannedDates: Map<string, string>;
     unallocatedTopicIds: string[];
@@ -215,13 +230,22 @@ export class CalendarEngine {
 
       let availableHoursToday = this.getScheduledHoursForWeekday(weekday, timetableSlots);
 
+      // Deduct cancelled session hours on this date
+      const cancelledHoursToday = cancelledSessions
+        .filter((cs) => this.formatDateOnly(cs.sessionDate) === dateStr)
+        .reduce((sum, cs) => sum + cs.durationHours, 0);
+
+      availableHoursToday = Math.max(0, availableHoursToday - cancelledHoursToday);
+
       if (availableHoursToday <= 0) {
         explanation.push({
           date: dateStr,
           weekday,
           weekdayName,
           isWorkingDay: true,
-          reason: 'No scheduled timetable classes for subject on this weekday',
+          reason: cancelledHoursToday > 0
+            ? `Cancelled session on this date (${cancelledHoursToday}h cancelled)`
+            : 'No scheduled timetable classes for subject on this weekday',
           scheduledHours: 0,
           topicsAllocated: [],
         });

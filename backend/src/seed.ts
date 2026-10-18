@@ -183,7 +183,42 @@ export async function seedCoreAcademicData() {
     },
     {
       email: 'faculty2@mirai.edu.in',
-      name: 'Varun Sir',
+      name: 'Varun Kumar Sharma',
+      role: 'FACULTY',
+      campusId: campuses['HI-Tech'].id,
+      batchId: null,
+    },
+    {
+      email: 'aman.srivastava@mirai.edu.in',
+      name: 'Aman Srivastava',
+      role: 'FACULTY',
+      campusId: campuses['HI-Tech'].id,
+      batchId: null,
+    },
+    {
+      email: 'himanshu.sharma@mirai.edu.in',
+      name: 'Himanshu Sharma Kumar',
+      role: 'FACULTY',
+      campusId: campuses['HI-Tech'].id,
+      batchId: null,
+    },
+    {
+      email: 'gaurav.singh@mirai.edu.in',
+      name: 'Gaurav Singh Singh',
+      role: 'FACULTY',
+      campusId: campuses['HI-Tech'].id,
+      batchId: null,
+    },
+    {
+      email: 'soniya.tyagi@mirai.edu.in',
+      name: 'Soniya Tyagi',
+      role: 'FACULTY',
+      campusId: campuses['HI-Tech'].id,
+      batchId: null,
+    },
+    {
+      email: 'suman.rajput@mirai.edu.in',
+      name: 'Dr Suman Rajput',
       role: 'FACULTY',
       campusId: campuses['HI-Tech'].id,
       batchId: null,
@@ -261,7 +296,7 @@ export async function seedCoreAcademicData() {
 }
 
 export async function seedSubjectsAndProgress(academicData: any) {
-  console.log('\n📚 Seeding BTech CSE (AI/ML) subjects: "DSA in c++" and "Web development"...');
+  console.log('\n📚 Seeding BTech CSE (AI/ML) subjects and assigning faculty...');
   const { campuses, tracks, semester, batches, users } = academicData;
 
   const batchA = batches['BTech CSE (AI/ML) - Batch A (HI-Tech)'];
@@ -279,6 +314,7 @@ export async function seedSubjectsAndProgress(academicData: any) {
     },
     update: {
       name: 'DSA in c++',
+      trackId: tracks['Mirai Track'].id,
       plannedHours: 44.5,
       facultyId: faculty1.id,
     },
@@ -307,6 +343,7 @@ export async function seedSubjectsAndProgress(academicData: any) {
     },
     update: {
       name: 'Web development',
+      trackId: tracks['Mirai Track'].id,
       plannedHours: 40.0,
       facultyId: faculty2.id,
     },
@@ -324,7 +361,48 @@ export async function seedSubjectsAndProgress(academicData: any) {
     },
   });
 
-  console.log('✔ Subjects seeded: "DSA in c++" (CS501) and "Web development" (CS502)');
+  const universitySubjects = [
+    { code: 'CS503', name: 'IKS', faculty: users['gaurav.singh@mirai.edu.in'] },
+    { code: 'EE101', name: 'Fundamentals of Electrical Engg.', faculty: users['aman.srivastava@mirai.edu.in'] },
+    { code: 'PHY101', name: 'Physics', faculty: users['himanshu.sharma@mirai.edu.in'] },
+    { code: 'WEB101', name: 'Internet & Web Basics', faculty: faculty2 },
+    { code: 'CS504', name: 'Introduction to prompt Eng', faculty: faculty1 },
+    { code: 'LAN101', name: 'Language lab', faculty: users['soniya.tyagi@mirai.edu.in'] },
+    { code: 'PHY102', name: 'Physics Lab', faculty: users['suman.rajput@mirai.edu.in'] },
+    { code: 'MAT101', name: 'Mathematics-I', faculty: users['gaurav.singh@mirai.edu.in'] },
+    { code: 'CS505', name: 'Programming language', faculty: faculty1 },
+  ];
+
+  for (const subject of universitySubjects) {
+    await prisma.subject.upsert({
+      where: {
+        code_campusId_batchId: {
+          code: subject.code,
+          campusId: campuses['HI-Tech'].id,
+          batchId: batchA.id,
+        },
+      },
+      update: {
+        name: subject.name,
+        trackId: tracks['University Track'].id,
+        facultyId: subject.faculty.id,
+      },
+      create: {
+        code: subject.code,
+        name: subject.name,
+        campusId: campuses['HI-Tech'].id,
+        trackId: tracks['University Track'].id,
+        semesterId: semester.id,
+        batchId: batchA.id,
+        facultyId: subject.faculty.id,
+        plannedHours: 0,
+        targetFinishDate: semester.targetFinishDate,
+        color: '#2563eb',
+      },
+    });
+  }
+
+  console.log('✔ Subjects seeded: DSA and Web development (Mirai Track); nine other subjects (University Track)');
 
   // 3. Lesson Plans for DSA in c++
   const dsaTopics = [
@@ -584,7 +662,7 @@ export async function seedSubjectsAndProgress(academicData: any) {
       recipientUserId: users['manager.hitech@mirai.edu.in'].id,
       type: 'CAMPUS_MANAGER_ESCALATION',
       title: 'ESCALATION: Missing Log > 48h - CS502 Web development',
-      message: 'Class for Web development scheduled on ' + unloggedOldDateStr + ' by Varun Sir has not been logged for over 48 hours. Campus manager intervention required.',
+      message: 'Class for Web development scheduled on ' + unloggedOldDateStr + ' by Varun Kumar Sharma has not been logged for over 48 hours. Campus manager intervention required.',
       status: 'SENT',
       hoursUnlogged: 96.0,
       scheduledDate: escalatedSession.sessionDate,

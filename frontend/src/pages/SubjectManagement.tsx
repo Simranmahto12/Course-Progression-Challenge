@@ -126,6 +126,17 @@ export const SubjectManagement: React.FC = () => {
 
   const topics: Topic[] = selectedSubject?.topics || [];
   const prog = selectedSubject?.progression;
+  const subjectsByTrack = subjects.reduce<Record<string, Subject[]>>((groups, subject) => {
+    const trackName = subject.track?.name || 'Other Subjects';
+    (groups[trackName] ||= []).push(subject);
+    return groups;
+  }, {});
+  const trackOrder = ['Mirai Track', 'University Track'];
+  const trackNames = Object.keys(subjectsByTrack).sort((a, b) => {
+    const aIndex = trackOrder.indexOf(a);
+    const bIndex = trackOrder.indexOf(b);
+    return (aIndex === -1 ? trackOrder.length : aIndex) - (bIndex === -1 ? trackOrder.length : bIndex) || a.localeCompare(b);
+  });
 
   return (
     <div className="space-y-6">
@@ -166,33 +177,40 @@ export const SubjectManagement: React.FC = () => {
               No subjects registered in this semester yet.
             </div>
           ) : (
-            subjects.map((sub) => {
-              const isSelected = selectedSubject?.id === sub.id;
-              const subProg = sub.progression;
+            trackNames.map((trackName) => (
+              <section key={trackName} className="space-y-2">
+                <h3 className="px-2 pt-2 text-[10px] font-bold uppercase tracking-wider text-indigo-600">
+                  {trackName} ({subjectsByTrack[trackName].length})
+                </h3>
+                {subjectsByTrack[trackName].map((sub) => {
+                  const isSelected = selectedSubject?.id === sub.id;
+                  const subProg = sub.progression;
 
-              return (
-                <div
-                  key={sub.id}
-                  onClick={() => setSelectedSubject(sub)}
-                  className={`p-3 rounded-xl border transition cursor-pointer ${
-                    isSelected
-                      ? 'border-indigo-600 bg-indigo-50/40 shadow-xs'
-                      : 'border-slate-200 hover:border-slate-300 bg-white'
-                  }`}
-                >
-                  <div className="flex justify-between items-start mb-1">
-                    <span className="font-mono text-xs font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded">
-                      {sub.code}
-                    </span>
-                    {subProg && <StatusBadge status={subProg.status} size="sm" />}
-                  </div>
-                  <div className="font-bold text-slate-900 text-xs mt-1">{sub.name}</div>
-                  <div className="text-[11px] text-slate-500 mt-0.5">
-                    {sub.campus?.name} • {sub.track?.name}
-                  </div>
-                </div>
-              );
-            })
+                  return (
+                    <div
+                      key={sub.id}
+                      onClick={() => setSelectedSubject(sub)}
+                      className={`p-3 rounded-xl border transition cursor-pointer ${
+                        isSelected
+                          ? 'border-indigo-600 bg-indigo-50/40 shadow-xs'
+                          : 'border-slate-200 hover:border-slate-300 bg-white'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start mb-1">
+                        <span className="font-mono text-xs font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded">
+                          {sub.code}
+                        </span>
+                        {subProg && <StatusBadge status={subProg.status} size="sm" />}
+                      </div>
+                      <div className="font-bold text-slate-900 text-xs mt-1">{sub.name}</div>
+                      <div className="text-[11px] text-slate-500 mt-0.5">
+                        {sub.campus?.name} · {sub.faculty?.name || 'Unassigned'}
+                      </div>
+                    </div>
+                  );
+                })}
+              </section>
+            ))
           )}
         </div>
 

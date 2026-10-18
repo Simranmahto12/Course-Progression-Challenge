@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import prisma from '../lib/prisma.js';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth.js';
 import { CalendarEngine } from '../services/calendarEngine.js';
+import { RecalculationService } from '../services/recalculationService.js';
 
 const router = Router();
 
@@ -127,6 +128,12 @@ router.post('/log', authenticate, async (req: AuthenticatedRequest, res: Respons
       return;
     }
 
+    // Role check: Students cannot log sessions
+    if (req.user?.role === 'STUDENT') {
+      res.status(403).json({ error: 'Forbidden: Students cannot log sessions.' });
+      return;
+    }
+
     // Role check: Faculty can only log their own sessions
     if (req.user?.role === 'FACULTY' && scheduledSession.facultyId !== req.user.id) {
       res.status(403).json({ error: 'Forbidden: You cannot log sessions for another faculty member.' });
@@ -220,6 +227,13 @@ router.post('/log', authenticate, async (req: AuthenticatedRequest, res: Respons
 
       return log;
     });
+
+    // Automatically recalculate remaining syllabus topic planned dates for the subject
+    try {
+      await RecalculationService.recalculateSubjectTopicDates(scheduledSession.subjectId);
+    } catch (recalcErr) {
+      console.error('Auto date recalculation warning:', recalcErr);
+    }
 
     res.status(201).json({
       success: true,

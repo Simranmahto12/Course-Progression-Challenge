@@ -68,6 +68,43 @@ describe('End-to-End API Workflows & Seeded Subjects Verification', () => {
     expect(webSubject.topics.length).toBe(11);
   });
 
+  it('assigns the requested subjects and faculty to the correct tracks without duplicating DSA', async () => {
+    const subjects = await prisma.subject.findMany({
+      where: { campusId: dsaSubject.campusId, batchId: dsaSubject.batchId },
+      include: { track: true, faculty: true },
+    });
+    const expectedUniversitySubjects = [
+      ['CS503', 'IKS', 'Gaurav Singh Singh'],
+      ['EE101', 'Fundamentals of Electrical Engg.', 'Aman Srivastava'],
+      ['PHY101', 'Physics', 'Himanshu Sharma Kumar'],
+      ['WEB101', 'Internet & Web Basics', 'Varun Kumar Sharma'],
+      ['CS504', 'Introduction to prompt Eng', 'Vishal Rathee'],
+      ['LAN101', 'Language lab', 'Soniya Tyagi'],
+      ['PHY102', 'Physics Lab', 'Dr Suman Rajput'],
+      ['MAT101', 'Mathematics-I', 'Gaurav Singh Singh'],
+      ['CS505', 'Programming language', 'Vishal Rathee'],
+    ];
+
+    for (const [code, name, facultyName] of expectedUniversitySubjects) {
+      const subject = subjects.find((item) => item.code === code);
+      expect(subject).toMatchObject({
+        name,
+        track: { name: 'University Track' },
+        faculty: { name: facultyName },
+      });
+    }
+
+    for (const code of ['CS501', 'CS502']) {
+      expect(subjects.find((subject) => subject.code === code)?.track.name).toBe('Mirai Track');
+    }
+
+    expect(
+      subjects.filter((subject) =>
+        ['dsa in c++', 'data structure and algorithm 1'].includes(subject.name.toLowerCase())
+      )
+    ).toHaveLength(1);
+  });
+
   it('retrieves faculty dashboard and verifies Today sessions contain scheduled class', async () => {
     const res = await request(app)
       .get('/api/dashboard/faculty')

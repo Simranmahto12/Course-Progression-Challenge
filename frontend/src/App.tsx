@@ -8,6 +8,7 @@ import { StudentDashboard } from './pages/StudentDashboard';
 import { SubjectManagement } from './pages/SubjectManagement';
 import { TimetableManagement } from './pages/TimetableManagement';
 import { CSVImportCenter } from './pages/CSVImportCenter';
+import { LoginPage } from './pages/LoginPage';
 
 const MainContent: React.FC = () => {
   const { user, loading } = useAuth();
@@ -22,6 +23,10 @@ const MainContent: React.FC = () => {
         </div>
       </div>
     );
+  }
+
+  if (!user) {
+    return <LoginPage />;
   }
 
   const renderDashboard = () => {

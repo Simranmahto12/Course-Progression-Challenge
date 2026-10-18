@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  GraduationCap,
   Bell,
   Menu,
   X,
@@ -16,6 +15,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { Role } from '../types';
 import { apiRequest } from '../services/api';
+import { BrandLogo } from './BrandLogo';
 
 interface NavbarProps {
   currentTab: string;
@@ -55,22 +55,11 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
     <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo & Institution Branding */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-700 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-indigo-100">
-              <GraduationCap className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="font-black text-slate-900 tracking-tight text-base sm:text-lg flex items-center gap-2">
-                <span>Mirai School of Technology</span>
-                <span className="hidden md:inline-block px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase bg-indigo-100 text-indigo-800 rounded-full">
-                  MSOT • BTech CSE (AI/ML)
-                </span>
-              </div>
-              <div className="text-[11px] text-slate-500 font-medium">
-                Course Progression Tracker
-              </div>
-            </div>
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+            <BrandLogo markSize={38} />
+            <span className="hidden border-l border-slate-200 pl-3 text-[10px] font-bold uppercase tracking-wider text-slate-500 md:inline-block">
+              MSOT · Course Progression
+            </span>
           </div>
 
           {/* Desktop Navigation */}

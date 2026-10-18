@@ -1,4 +1,16 @@
-const API_BASE = '/api';
+const getApiBase = (): string => {
+  if (typeof window !== 'undefined') {
+    const port = window.location.port;
+    const hostname = window.location.hostname;
+    // When served via VS Code Live Server (e.g. port 5500, 5502) rather than Vite proxy (port 3000)
+    if (port && port !== '3000' && (hostname === 'localhost' || hostname === '127.0.0.1')) {
+      return 'http://localhost:5001/api';
+    }
+  }
+  return '/api';
+};
+
+const API_BASE = getApiBase();
 
 export const getAuthToken = (): string | null => {
   return localStorage.getItem('msot_auth_token');

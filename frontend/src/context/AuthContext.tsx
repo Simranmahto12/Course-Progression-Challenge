@@ -18,7 +18,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState<boolean>(true);
   const [demoUsers, setDemoUsers] = useState<User[]>([]);
 
-  // Load demo users list and current user if token exists
   useEffect(() => {
     async function initAuth() {
       try {
@@ -29,13 +28,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (token) {
           const meRes = await apiRequest<{ user: User }>('/auth/me');
           setUser(meRes.user);
-        } else if (demoRes.users && demoRes.users.length > 0) {
-          // Auto-select faculty demo user by default if not logged in
-          const defaultUser = demoRes.users.find((u) => u.role === 'FACULTY') || demoRes.users[0];
-          await login(defaultUser.email, 'mirai123');
         }
       } catch (err) {
-        console.error('Auth initialization error:', err);
+        console.warn('Backend API connection warning (running offline / static mode):', err);
+        const fallbackUsers: User[] = [
+          {
+            id: 'cmv48mek2000uv82b1wnljb31',
+            name: 'Vishal Rathee',
+            email: 'faculty1@mirai.edu.in',
+            role: 'FACULTY',
+            campus: { id: 'cmv48mehw0000v82b08ihbdhq', name: 'HI-Tech' },
+            batch: undefined,
+          },
+          {
+            id: 'cmv48mek0000ov82bek4hhvea',
+            name: 'Dr. Suresh Varma (Program Director)',
+            email: 'admin@mirai.edu.in',
+            role: 'ADMIN',
+            campus: undefined,
+            batch: undefined,
+          },
+          {
+            id: 'cmv48mek1000qv82bqb80xwn7',
+            name: 'Kavita Reddy (Campus Manager HI-Tech)',
+            email: 'manager.hitech@mirai.edu.in',
+            role: 'CAMPUS_MANAGER',
+            campus: { id: 'cmv48mehw0000v82b08ihbdhq', name: 'HI-Tech' },
+            batch: undefined,
+          },
+          {
+            id: 'cmv48mek30010v82b0c2h80kt',
+            name: 'Aarav Patel (Student BTech CSE AI/ML)',
+            email: 'student@mirai.edu.in',
+            role: 'STUDENT',
+            campus: { id: 'cmv48mehw0000v82b08ihbdhq', name: 'HI-Tech' },
+            batch: { id: 'cmv48mei6000gv82bezrqrsqk', name: 'BTech CSE (AI/ML) - Batch A (HI-Tech)' },
+          },
+        ];
+        setDemoUsers(fallbackUsers);
+        if (getAuthToken()) {
+          setAuthToken(null);
+        }
       } finally {
         setLoading(false);
       }
@@ -44,7 +77,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (email: string, password: string = 'mirai123') => {
-    setLoading(true);
     try {
       const res = await apiRequest<{ token: string; user: User }>('/auth/login', {
         method: 'POST',
@@ -52,8 +84,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       setAuthToken(res.token);
       setUser(res.user);
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      const match = demoUsers.find((u) => u.email === email);
+      if (err instanceof TypeError && match && password === 'mirai123') {
+        setUser(match);
+      } else {
+        throw err;
+      }
     }
   };
 
@@ -65,7 +102,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const switchRole = async (targetRole: Role) => {
     const targetUser = demoUsers.find((u) => u.role === targetRole);
     if (targetUser) {
-      await login(targetUser.email, 'mirai123');
+      try {
+        await login(targetUser.email, 'mirai123');
+      } catch {
+        setUser(targetUser);
+      }
     }
   };
 

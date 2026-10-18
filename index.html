@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f8f9fc">
+    <meta name="description" content="A clear view of teaching progress, upcoming classes, and exam readiness.">
+    <title>Course Progress | Mirai School of Technology</title>
+    <link rel="stylesheet" href="./style.css">
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <a class="brand" href="#" aria-label="Mirai home">
+          <span class="brand-mark">m</span>
+          <span class="brand-copy"><strong>mirai</strong><small>LEARNING PORTAL</small></span>
+        </a>
+        <div class="side-label">WORKSPACE</div>
+        <nav class="side-nav" aria-label="Main navigation">
+          <button class="nav-link active" data-page="overview"><span class="nav-icon">⌂</span>Overview</button>
+          <button class="nav-link" data-page="sessions"><span class="nav-icon">◷</span>Sessions<span class="nav-count">3</span></button>
+          <button class="nav-link" data-page="subjects"><span class="nav-icon">▤</span>Subjects</button>
+          <button class="nav-link" data-page="calendar"><span class="nav-icon">▦</span>Calendar</button>
+          <button class="nav-link" data-page="students"><span class="nav-icon">♙</span>Students</button>
+          <button class="nav-link" data-page="reports"><span class="nav-icon">▥</span>Reports</button>
+        </nav>
+        <div class="side-label setup-label">SETUP</div>
+        <nav class="side-nav" aria-label="Setup navigation">
+          <button class="nav-link" data-page="timetable"><span class="nav-icon">▧</span>Timetable</button>
+          <button class="nav-link" data-page="settings"><span class="nav-icon">⚙</span>Settings</button>
+        </nav>
+        <div class="sidebar-bottom">
+          <div class="help-card">
+            <span class="help-icon">?</span>
+            <strong>Need a hand?</strong>
+            <p>Find quick answers to get you started.</p>
+            <button class="text-button" data-toast="Help center is coming soon.">Visit help center <span>→</span></button>
+          </div>
+          <button class="user-card" id="profile-button" aria-label="Profile menu">
+            <span class="avatar">SV</span>
+            <span class="user-copy"><strong>Suresh Varma</strong><small>Program Manager</small></span>
+            <span class="user-more">···</span>
+          </button>
+        </div>
+      </aside>
+
+      <main class="main-area">
+        <header class="topbar">
+          <button class="mobile-menu" id="mobile-menu" aria-label="Open navigation">☰</button>
+          <div class="crumb"><span>Workspace</span><span class="crumb-slash">/</span><strong id="crumb-title">Overview</strong></div>
+          <div class="top-actions">
+            <label class="term-select"><span class="sr-only">Choose semester</span><select id="semester-select"><option>Fall semester · 2026</option><option>Spring semester · 2026</option></select></label>
+            <button class="icon-button notification-button" aria-label="Notifications" data-toast="You're all caught up.">♧<i></i></button>
+            <span class="top-avatar">SV</span>
+          </div>
+        </header>
+
+        <div class="page-content">
+          <section class="page-heading">
+            <div>
+              <p class="eyebrow">THURSDAY, OCTOBER 15, 2026 <span class="live-dot"></span> LIVE OVERVIEW</p>
+              <h1 id="page-title">Good morning, Suresh <span class="wave">✳</span></h1>
+              <p class="heading-subtitle" id="page-subtitle">Here’s how your courses are moving this semester.</p>
+            </div>
+            <button class="primary-button" id="log-session-button"><span>＋</span> Log a session</button>
+          </section>
+          <section class="stat-grid" aria-label="Semester summary">
+            <article class="stat-card"><div class="stat-top"><span>Overall coverage</span><span class="stat-symbol purple">◉</span></div><div class="stat-value"><strong id="coverage-value">68%</strong><span class="trend positive">↗ 4.2%</span></div><div class="stat-foot"><span class="mini-track"><i style="width:68%"></i></span><span>of planned syllabus</span></div></article>
+            <article class="stat-card"><div class="stat-top"><span>Teaching hours logged</span><span class="stat-symbol blue">◷</span></div><div class="stat-value"><strong id="hours-value">412</strong><span class="stat-unit">/ 580 hrs</span></div><div class="stat-foot"><span class="trend positive">↗ 12 hrs</span><span>this week</span></div></article>
+            <article class="stat-card"><div class="stat-top"><span>Subjects on track</span><span class="stat-symbol green">✓</span></div><div class="stat-value"><strong id="track-value">5</strong><span class="stat-unit">of 7 subjects</span></div><div class="stat-foot"><span class="status-dot green-dot"></span><span>Most classes are on pace</span></div></article>
+            <article class="stat-card"><div class="stat-top"><span>Next exam</span><span class="stat-symbol amber">▦</span></div><div class="stat-value"><strong class="exam-value">12</strong><span class="stat-unit">days away</span></div><div class="stat-foot"><span class="status-dot amber-dot"></span><span>Mid-sem · Oct 27</span></div></article>
+          </section>
+          <section class="content-grid">
+            <article class="panel subject-panel">
+              <div class="panel-heading"><div><h2>Subject progress</h2><p>Stay on top of every course in your program.</p></div><button class="subtle-button" data-page-link="subjects">All subjects <span>→</span></button></div>
+              <div class="subject-table-wrap"><table class="subject-table"><thead><tr><th>SUBJECT</th><th>PROGRESS</th><th>PACE</th><th>BUFFER</th></tr></thead><tbody id="subject-rows"></tbody></table></div>
+              <button class="mobile-all-link" data-page-link="subjects">View all subjects →</button>
+            </article>
+            <article class="panel week-panel">
+              <div class="panel-heading"><div><h2>This week</h2><p>Your teaching schedule at a glance.</p></div><button class="subtle-button" data-page-link="calendar">Full calendar <span>→</span></button></div>
+              <div class="week-strip" id="week-strip"></div><div class="schedule-list" id="schedule-list"></div>
+            </article>
+          </section>
+          <section class="bottom-grid">
+            <article class="panel alert-panel">
+              <div class="panel-heading"><div class="heading-with-icon"><span class="alert-badge">!</span><div><h2>Needs your attention</h2><p>A little nudge to keep everything on track.</p></div></div><span class="small-count">2 items</span></div>
+              <div class="attention-list">
+                <div class="attention-item"><span class="attention-icon danger-icon">↘</span><div><strong>Database Systems is falling behind</strong><p>Buffer is running low. 3 sessions need to be added.</p></div><button class="arrow-button" data-page-link="subjects" aria-label="View Database Systems">→</button></div>
+                <div class="attention-item"><span class="attention-icon warning-icon">◷</span><div><strong>1 session is waiting for a log</strong><p>Computer Networks · Yesterday at 11:30 AM</p></div><button class="arrow-button" id="attention-log" aria-label="Log overdue session">→</button></div>
+              </div>
+            </article>
+            <article class="panel exam-panel">
+              <div class="panel-heading"><div><h2>Coming up</h2><p>Upcoming exams for your batch.</p></div><button class="subtle-button" data-page-link="calendar">View calendar <span>→</span></button></div>
+              <div class="exam-row"><span class="exam-date"><strong>27</strong><small>OCT</small></span><div><strong>Mid-semester exams</strong><p>All subjects · BTech CSE (AI/ML)</p></div><span class="exam-pill">12 days</span></div>
+              <div class="exam-row"><span class="exam-date"><strong>18</strong><small>NOV</small></span><div><strong>Practical assessments</strong><p>Lab subjects · BTech CSE (AI/ML)</p></div><span class="exam-pill muted-pill">46 days</span></div>
+            </article>
+          </section>
+          <footer class="page-footer"><span>Mirai Learning Portal</span><span>Making every class count.</span></footer>
+        </div>
+      </main>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <dialog class="session-dialog" id="session-dialog">
+      <form id="session-form">
+        <div class="dialog-heading"><div><span class="eyebrow">QUICK SESSION LOG</span><h2>How did class go?</h2><p>This should only take a moment.</p></div><button type="button" class="dialog-close" id="close-dialog" aria-label="Close">×</button></div>
+        <label class="field-label" for="session-subject">Subject</label><select class="field-input" id="session-subject" required></select>
+        <label class="field-label" for="session-status">Session status</label><select class="field-input" id="session-status"><option value="Completed">Completed</option><option value="In progress">In progress</option><option value="Skipped">Skipped</option><option value="Cancelled">Cancelled</option></select>
+        <div id="completion-wrap" class="completion-wrap"><label class="field-label" for="session-completion">How much did you cover? <span id="completion-label">100%</span></label><input type="range" id="session-completion" min="0" max="100" value="100"></div>
+        <label class="field-label" for="session-notes">Topics or notes <span class="optional-label">Optional</span></label><textarea class="field-input" id="session-notes" rows="3" placeholder="What did you cover today?"></textarea>
+        <button class="primary-button save-button" type="submit">Save session</button>
+      </form>
+    </dialog>
+  </body>
+</html>
