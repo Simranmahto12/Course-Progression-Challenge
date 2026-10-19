@@ -63,14 +63,14 @@ describe('CalculationEngine Unit Tests', () => {
   });
 
   it('enforces Worst-Subject Roll-Up (never average)', () => {
-    const dsa = CalculationEngine.calculateSubjectProgress('sub-dsa')!;
-    const dbms = CalculationEngine.calculateSubjectProgress('sub-dbms')!;
-    const ml = CalculationEngine.calculateSubjectProgress('sub-ml')!;
+    const dsa = CalculationEngine.calculateSubjectProgress('sub-dsa');
+    const dbms = CalculationEngine.calculateSubjectProgress('sub-dbms');
+    const ml = CalculationEngine.calculateSubjectProgress('sub-ml');
 
     const rollup = CalculationEngine.calculateRollup('test-campus', 'HI-Tech', 'CAMPUS', [dsa, dbms, ml]);
 
     // Rollup worstStatus must equal worst subject's status
-    const severities: Record<string, number> = { DANGER: 4, TIGHT: 3, 'ON TRACK': 2, COMPLETE: 1 };
+    const severities = { DANGER: 4, TIGHT: 3, 'ON TRACK': 2, COMPLETE: 1 };
     const maxSubSeverity = Math.max(
       severities[dsa.status] || 0,
       severities[dbms.status] || 0,

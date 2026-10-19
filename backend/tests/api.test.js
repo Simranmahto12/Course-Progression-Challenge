@@ -4,9 +4,9 @@ import { db, initDatabase } from '../src/db.js';
 import { seedDatabase } from '../src/seed.js';
 
 describe('MSOT Course Progression Platform - SQLite Backend API & Engine Tests', () => {
-  let adminToken: string;
-  let facultyToken: string;
-  let studentToken: string;
+  let adminToken;
+  let facultyToken;
+  let studentToken;
 
   beforeAll(() => {
     // Seed fresh SQLite database before testing

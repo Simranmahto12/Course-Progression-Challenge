@@ -1,14 +1,13 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "Self-contained SQLite Backend API for MSOT Course Progression Platform",
-  "main": "dist/server.js",
+  "description": "Self-contained SQLite Backend API for MSOT Course Progression Platform (Pure JavaScript)",
+  "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js",
-    "seed": "tsx src/seed.ts",
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "seed": "node src/seed.js",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand --detectOpenHandles --forceExit"
   },
   "dependencies": {
@@ -24,19 +23,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^2.4.6",
-    "@types/better-sqlite3": "^9.6.0",
-    "@types/cors": "^2.8.17",
-    "@types/express": "^4.17.21",
-    "@types/jest": "^29.5.14",
-    "@types/jsonwebtoken": "^9.0.7",
-    "@types/multer": "^1.4.12",
-    "@types/node": "^20.17.6",
-    "@types/supertest": "^6.0.2",
     "jest": "^29.7.0",
-    "supertest": "^7.0.0",
-    "ts-jest": "^29.2.5",
-    "tsx": "^4.19.2",
-    "typescript": "^5.6.3"
+    "supertest": "^7.0.0"
   }
 }

@@ -23,14 +23,16 @@ Course-Progression-Challenge/
 ├── styles.css             # Consolidated Mirai branding, responsive mobile CSS layout
 ├── app.js                 # Core client JavaScript engine (state, Mobile OTP handling, DOM, Chart.js)
 ├── server.js              # Pure Node.js (Express) server with Mobile Number + Mock OTP endpoints
-├── assets/                # Official brand design mark (mirai-logo.png)
-├── backend/               # Self-contained SQLite Academic Engine
+├── .env                   # Fresh environment configuration with Google Client ID, secret, and port
+├── .env.example           # Environment template file
+├── assets/                # Official brand design mark (mirai-logo.png, mirai-logo-icon.png)
+├── backend/               # Self-contained SQLite Academic Engine (100% Pure JavaScript)
 │   ├── src/
-│   │   ├── db.ts          # SQLite database connection & schema auto-creation
-│   │   ├── seed.ts        # Database seed script for campuses, timetables, and subjects
-│   │   ├── routes/        # Auth (send-otp, verify-otp), Admin, Timetables, Logs, Dashboards
+│   │   ├── db.js          # SQLite database connection & schema auto-creation
+│   │   ├── seed.js        # Database seed script for campuses, timetables, and subjects
+│   │   ├── routes/        # Auth (send-otp, verify-otp, google), Admin, Timetables, Logs, Dashboards
 │   │   └── services/      # Core deterministic calculation engine (Buffer ratio, Worst subject roll-up)
-│   └── tests/             # Automated test suite (Jest + Supertest)
+│   └── tests/             # Automated test suite (Jest + Supertest in JavaScript)
 └── README.md              # Documentation and usage guide
 ```
 
@@ -51,8 +53,8 @@ npm install
 npm start
 ```
 
-- **Live Web Portal:** [http://localhost:5001](http://localhost:5001) (or open `index.html` directly in any browser)
-- **API Health Check:** [http://localhost:5001/api/health](http://localhost:5001/api/health)
+- **Live Web Portal:** [http://localhost:3000](http://localhost:3000) (or open `index.html` directly in any browser)
+- **API Health Check:** [http://localhost:3000/api/health](http://localhost:3000/api/health)
 
 ---
 

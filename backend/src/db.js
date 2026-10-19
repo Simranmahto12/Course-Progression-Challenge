@@ -1,15 +1,11 @@
 import Database from 'better-sqlite3';
 import path from 'path';
-import fs from 'fs';
-
 const DB_FILE = process.env.DATABASE_FILE || path.resolve(process.cwd(), 'database.sqlite');
-
 export const db = new Database(DB_FILE);
 db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');
-
 export function initDatabase() {
-  db.exec(`
+    db.exec(`
     -- Campuses
     CREATE TABLE IF NOT EXISTS campuses (
       id TEXT PRIMARY KEY,
@@ -143,6 +139,5 @@ export function initDatabase() {
     );
   `);
 }
-
 // Automatically initialize schema on import
 initDatabase();
