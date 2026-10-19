@@ -1,437 +1,260 @@
 import { Router, Request, Response } from 'express';
-import prisma from '../lib/prisma.js';
-import { authenticate, requireRoles, verifySubjectAccess, AuthenticatedRequest } from '../middleware/auth.js';
+import { db } from '../db.js';
+import { authenticate, AuthenticatedRequest, verifySubjectAccess } from '../middleware/auth.js';
 import { CalculationEngine } from '../services/calculationEngine.js';
-import { CalendarEngine } from '../services/calendarEngine.js';
-import { SaturdayRule } from '../types/index.js';
 
 const router = Router();
 
-// GET /api/subjects (filtered by campus, track, batch, or faculty)
-router.get('/', authenticate, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+/**
+ * GET /api/subjects
+ * Retrieve subjects with calculation metrics and topics
+ */
+router.get('/', authenticate, (req: AuthenticatedRequest, res: Response): void => {
   try {
-    const { campusId, trackId, batchId, facultyId } = req.query;
-    const where: any = {};
+    const user = req.user;
+    const userRole = (user?.role || '').toUpperCase();
+    const { campusId, batchId, facultyId } = req.query;
 
-    if (campusId) where.campusId = String(campusId);
-    if (trackId) where.trackId = String(trackId);
-    if (batchId) where.batchId = String(batchId);
-    if (facultyId) where.facultyId = String(facultyId);
+    let query = `
+      SELECT s.*, b.name as batch_name, b.campus_id, c.name as campus_name,
+             t.name as track_name, u.name as faculty_name, u.email as faculty_email
+      FROM subjects s
+      JOIN batches b ON s.batch_id = b.id
+      JOIN campuses c ON b.campus_id = c.id
+      JOIN tracks t ON b.track_id = t.id
+      LEFT JOIN users u ON s.faculty_id = u.id
+      WHERE 1=1
+    `;
+    const params: any[] = [];
 
-    // Role-based restrictions:
-    if (req.user?.role === 'FACULTY') {
-      where.facultyId = req.user.id;
-    } else if (req.user?.role === 'CAMPUS_MANAGER' && req.user.campusId) {
-      where.campusId = req.user.campusId;
-    } else if (req.user?.role === 'STUDENT' && req.user.batchId) {
-      where.batchId = req.user.batchId;
+    if (campusId) {
+      query += ` AND c.id = ?`;
+      params.push(campusId);
+    }
+    if (batchId) {
+      query += ` AND b.id = ?`;
+      params.push(batchId);
+    }
+    if (facultyId) {
+      query += ` AND s.faculty_id = ?`;
+      params.push(facultyId);
     }
 
-    const subjects = await prisma.subject.findMany({
-      where,
-      include: {
-        campus: true,
-        track: true,
-        batch: true,
-        faculty: { select: { id: true, name: true, email: true } },
-        semester: true,
-        topics: { orderBy: { sequence: 'asc' } },
-        timetableEntries: true,
-      },
-      orderBy: { code: 'asc' },
-    });
+    // Role-based scoping
+    if (userRole === 'FACULTY') {
+      query += ` AND s.faculty_id = ?`;
+      params.push(user?.id);
+    } else if (userRole === 'CAMPUS_MANAGER' && user?.campusId) {
+      query += ` AND c.id = ?`;
+      params.push(user.campusId);
+    } else if (userRole === 'STUDENT' && user?.batchId) {
+      query += ` AND b.id = ?`;
+      params.push(user.batchId);
+    }
 
-    // Get system settings for buffer thresholds
-    const settings = await prisma.systemSettings.findFirst();
-    const thresholds = {
-      onTrackThreshold: settings?.onTrackThreshold || 1.15,
-      tightThreshold: settings?.tightThreshold || 1.00,
-    };
+    query += ` ORDER BY s.name ASC`;
 
-    // Fetch holidays
-    const holidays = await prisma.holidayCalendar.findMany();
+    const rawSubjects = db.prepare(query).all(...params) as any[];
 
-    // Map through subjects and compute real-time progression metrics
-    const results = subjects.map((sub) => {
-      const timetableSlots = sub.timetableEntries.map((t) => ({
-        weekday: t.weekday,
-        durationHours: t.durationHours,
+    // Fetch exams for readiness
+    const exams = db.prepare(`SELECT * FROM exams ORDER BY start_date ASC`).all() as any[];
+
+    const subjects = rawSubjects.map((sub) => {
+      const topics = db.prepare(`
+        SELECT * FROM topics WHERE subject_id = ? ORDER BY sequence ASC
+      `).all(sub.id) as any[];
+
+      const progression = CalculationEngine.calculateSubjectProgress(sub.id);
+
+      const examReadiness = exams.map((exam) => {
+        return CalculationEngine.calculateExamReadiness(sub.id, exam);
+      }).filter((r) => r !== null && r.inScopeTopicsCount > 0);
+
+      const formattedTopics = topics.map((t) => ({
+        id: t.id,
+        unit: t.unit_name,
+        sequence: t.sequence,
+        name: t.topic_name,
+        plannedHours: t.planned_hours,
+        status: t.status,
+        completionPercentage: t.percentage_complete,
+        coveredHours: CalculationEngine.calculateTopicCoveredHours({
+          status: t.status,
+          planned_hours: t.planned_hours,
+          percentage_complete: t.percentage_complete,
+        }),
+        plannedDate: t.planned_date,
+        examScopes: t.exam_scope_flag,
       }));
 
-      const saturdayRule = (sub.semester.saturdayRule as SaturdayRule) || 'SECOND_FOURTH_SATURDAY';
-
-      const progress = CalculationEngine.calculateSubjectProgress(
-        {
-          id: sub.id,
-          code: sub.code,
-          name: sub.name,
-          campusName: sub.campus.name,
-          trackName: sub.track.name,
-          facultyName: sub.faculty?.name,
-          targetFinishDate: sub.targetFinishDate,
-        },
-        sub.topics,
-        timetableSlots,
-        holidays,
-        saturdayRule,
-        sub.campusId,
-        sub.batchId,
-        new Date(),
-        thresholds
-      );
+      const totalPlanned = formattedTopics.reduce((acc, curr) => acc + curr.plannedHours, 0);
 
       return {
-        ...sub,
-        progression: progress,
+        id: sub.id,
+        code: sub.code,
+        name: sub.name,
+        color: sub.color || '#4361ee',
+        targetFinishDate: sub.target_finish_date,
+        plannedHours: totalPlanned,
+        campusId: sub.campus_id,
+        campus: { id: sub.campus_id, name: sub.campus_name },
+        track: { id: sub.track_id, name: sub.track_name },
+        batch: { id: sub.batch_id, name: sub.batch_name },
+        faculty: sub.faculty_name
+          ? { id: sub.faculty_id, name: sub.faculty_name, email: sub.faculty_email }
+          : undefined,
+        topics: formattedTopics,
+        progression,
+        examReadiness,
       };
     });
 
-    res.json({ subjects: results });
+    res.json({ subjects });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// GET /api/subjects/:id
-router.get('/:id', authenticate, verifySubjectAccess, async (req: Request, res: Response): Promise<void> => {
+/**
+ * GET /api/subjects/:id
+ */
+router.get('/:id', authenticate, verifySubjectAccess, (req: AuthenticatedRequest, res: Response): void => {
   try {
     const { id } = req.params;
+    const sub = db.prepare(`
+      SELECT s.*, b.name as batch_name, b.campus_id, c.name as campus_name,
+             t.name as track_name, u.name as faculty_name, u.email as faculty_email
+      FROM subjects s
+      JOIN batches b ON s.batch_id = b.id
+      JOIN campuses c ON b.campus_id = c.id
+      JOIN tracks t ON b.track_id = t.id
+      LEFT JOIN users u ON s.faculty_id = u.id
+      WHERE s.id = ?
+    `).get(id) as any;
 
-    const subject = await prisma.subject.findUnique({
-      where: { id },
-      include: {
-        campus: true,
-        track: true,
-        batch: true,
-        faculty: { select: { id: true, name: true, email: true } },
-        semester: {
-          include: { examWindows: true },
-        },
-        topics: { orderBy: { sequence: 'asc' } },
-        timetableEntries: true,
-        scheduledSessions: {
-          orderBy: { sessionDate: 'desc' },
-          take: 10,
-          include: { sessionLog: true },
-        },
-      },
-    });
-
-    if (!subject) {
+    if (!sub) {
       res.status(404).json({ error: 'Subject not found.' });
       return;
     }
 
-    const settings = await prisma.systemSettings.findFirst();
-    const thresholds = {
-      onTrackThreshold: settings?.onTrackThreshold || 1.15,
-      tightThreshold: settings?.tightThreshold || 1.00,
-    };
+    const topics = db.prepare(`
+      SELECT * FROM topics WHERE subject_id = ? ORDER BY sequence ASC
+    `).all(id) as any[];
 
-    const holidays = await prisma.holidayCalendar.findMany();
+    const progression = CalculationEngine.calculateSubjectProgress(id);
 
-    const timetableSlots = subject.timetableEntries.map((t) => ({
-      weekday: t.weekday,
-      durationHours: t.durationHours,
+    const exams = db.prepare(`SELECT * FROM exams ORDER BY start_date ASC`).all() as any[];
+    const examReadiness = exams.map((exam) => CalculationEngine.calculateExamReadiness(id, exam)).filter((r) => r !== null && r.inScopeTopicsCount > 0);
+
+    const formattedTopics = topics.map((t) => ({
+      id: t.id,
+      unit: t.unit_name,
+      sequence: t.sequence,
+      name: t.topic_name,
+      plannedHours: t.planned_hours,
+      status: t.status,
+      completionPercentage: t.percentage_complete,
+      coveredHours: CalculationEngine.calculateTopicCoveredHours({
+        status: t.status,
+        planned_hours: t.planned_hours,
+        percentage_complete: t.percentage_complete,
+      }),
+      plannedDate: t.planned_date,
+      examScopes: t.exam_scope_flag,
     }));
 
-    const saturdayRule = (subject.semester.saturdayRule as SaturdayRule) || 'SECOND_FOURTH_SATURDAY';
-
-    const progress = CalculationEngine.calculateSubjectProgress(
-      {
-        id: subject.id,
-        code: subject.code,
-        name: subject.name,
-        campusName: subject.campus.name,
-        trackName: subject.track.name,
-        facultyName: subject.faculty?.name,
-        targetFinishDate: subject.targetFinishDate,
-      },
-      subject.topics,
-      timetableSlots,
-      holidays,
-      saturdayRule,
-      subject.campusId,
-      subject.batchId,
-      new Date(),
-      thresholds
-    );
-
-    // Calculate exam readiness for each exam window in the semester
-    const examReadiness = subject.semester.examWindows.map((exam) =>
-      CalculationEngine.calculateExamReadiness(
-        exam,
-        subject.topics,
-        timetableSlots,
-        holidays,
-        saturdayRule,
-        subject.campusId,
-        subject.batchId,
-        new Date(),
-        thresholds
-      )
-    );
-
     res.json({
-      subject,
-      progression: progress,
-      examReadiness,
-    });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// POST /api/subjects (Admin / Campus Manager only)
-router.post('/', authenticate, requireRoles(['ADMIN', 'CAMPUS_MANAGER']), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-  try {
-    const { code, name, campusId, trackId, semesterId, batchId, facultyId, plannedHours, targetFinishDate, color } = req.body;
-
-    if (!code || !name || !campusId || !trackId || !semesterId || !batchId || !targetFinishDate) {
-      res.status(400).json({ error: 'Required fields missing.' });
-      return;
-    }
-
-    const subject = await prisma.subject.create({
-      data: {
-        code,
-        name,
-        campusId,
-        trackId,
-        semesterId,
-        batchId,
-        facultyId: facultyId || null,
-        plannedHours: parseFloat(plannedHours) || 0,
-        targetFinishDate: new Date(targetFinishDate),
-        color: color || '#2563eb',
+      subject: {
+        id: sub.id,
+        code: sub.code,
+        name: sub.name,
+        color: sub.color || '#4361ee',
+        targetFinishDate: sub.target_finish_date,
+        campusId: sub.campus_id,
+        campus: { id: sub.campus_id, name: sub.campus_name },
+        track: { id: sub.track_id, name: sub.track_name },
+        batch: { id: sub.batch_id, name: sub.batch_name },
+        faculty: sub.faculty_name
+          ? { id: sub.faculty_id, name: sub.faculty_name, email: sub.faculty_email }
+          : undefined,
+        topics: formattedTopics,
+        progression,
+        examReadiness,
       },
     });
-
-    res.status(201).json({ subject });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// PUT /api/subjects/:id
-router.put('/:id', authenticate, verifySubjectAccess, requireRoles(['ADMIN', 'CAMPUS_MANAGER']), async (req: Request, res: Response): Promise<void> => {
+/**
+ * GET /api/subjects/:id/explain-calculation
+ * Transparent step-by-step mathematical derivation of progress, buffer ratio, and status
+ */
+router.get('/:id/explain-calculation', authenticate, (req: AuthenticatedRequest, res: Response): void => {
   try {
     const { id } = req.params;
-    const { name, facultyId, plannedHours, targetFinishDate, color } = req.body;
+    const progress = CalculationEngine.calculateSubjectProgress(id);
 
-    const subject = await prisma.subject.update({
-      where: { id },
-      data: {
-        ...(name && { name }),
-        ...(facultyId !== undefined && { facultyId: facultyId || null }),
-        ...(plannedHours !== undefined && { plannedHours: parseFloat(plannedHours) }),
-        ...(targetFinishDate && { targetFinishDate: new Date(targetFinishDate) }),
-        ...(color && { color }),
-      },
-    });
-
-    res.json({ subject });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// DELETE /api/subjects/:id (Admin only)
-router.delete('/:id', authenticate, requireRoles(['ADMIN']), async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { id } = req.params;
-    await prisma.subject.delete({ where: { id } });
-    res.json({ success: true });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// --- Topic / Lesson Plan routes ---
-
-// POST /api/subjects/:id/topics
-router.post('/:id/topics', authenticate, verifySubjectAccess, requireRoles(['ADMIN', 'CAMPUS_MANAGER', 'FACULTY']), async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { id } = req.params;
-    const { unit, sequence, name, description, plannedHours, examScopes, prerequisites } = req.body;
-
-    const hours = parseFloat(plannedHours);
-    if (isNaN(hours) || hours <= 0) {
-      res.status(400).json({ error: 'Planned hours must be a positive number.' });
-      return;
-    }
-
-    const topic = await prisma.topic.create({
-      data: {
-        subjectId: id,
-        unit: unit || 'Unit 1',
-        sequence: parseInt(sequence, 10) || 1,
-        name,
-        description: description || null,
-        plannedHours: hours,
-        examScopes: examScopes || 'MID_TERM,END_TERM',
-        prerequisites: prerequisites || null,
-      },
-    });
-
-    res.status(201).json({ topic });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// PUT /api/subjects/:id/topics/:topicId
-router.put('/:id/topics/:topicId', authenticate, verifySubjectAccess, requireRoles(['ADMIN', 'CAMPUS_MANAGER', 'FACULTY']), async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { topicId } = req.params;
-    const { unit, sequence, name, description, plannedHours, examScopes, prerequisites, status, completionPercentage } = req.body;
-
-    const data: any = {};
-    if (unit) data.unit = unit;
-    if (sequence !== undefined) data.sequence = parseInt(sequence, 10);
-    if (name) data.name = name;
-    if (description !== undefined) data.description = description;
-    if (plannedHours !== undefined) {
-      const h = parseFloat(plannedHours);
-      if (isNaN(h) || h <= 0) {
-        res.status(400).json({ error: 'Planned hours must be positive.' });
-        return;
-      }
-      data.plannedHours = h;
-    }
-    if (examScopes !== undefined) data.examScopes = examScopes;
-    if (prerequisites !== undefined) data.prerequisites = prerequisites;
-    if (status) data.status = status;
-    if (completionPercentage !== undefined) {
-      data.completionPercentage = parseFloat(completionPercentage);
-    }
-
-    const updated = await prisma.topic.update({
-      where: { id: topicId },
-      data,
-    });
-
-    res.json({ topic: updated });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// DELETE /api/subjects/:id/topics/:topicId
-router.delete('/:id/topics/:topicId', authenticate, verifySubjectAccess, requireRoles(['ADMIN', 'CAMPUS_MANAGER', 'FACULTY']), async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { topicId } = req.params;
-    await prisma.topic.delete({ where: { id: topicId } });
-    res.json({ success: true });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// POST /api/subjects/:id/recalculate-dates
-router.post('/:id/recalculate-dates', authenticate, verifySubjectAccess, requireRoles(['ADMIN', 'CAMPUS_MANAGER', 'FACULTY']), async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { id } = req.params;
-    const subject = await prisma.subject.findUnique({
-      where: { id },
-      include: {
-        semester: true,
-        topics: { orderBy: { sequence: 'asc' } },
-        timetableEntries: true,
-      },
-    });
-
-    if (!subject) {
+    if (!progress) {
       res.status(404).json({ error: 'Subject not found.' });
       return;
     }
 
-    const holidays = await prisma.holidayCalendar.findMany();
-    const timetableSlots = subject.timetableEntries.map((t) => ({
-      weekday: t.weekday,
-      durationHours: t.durationHours,
-    }));
-    const saturdayRule = (subject.semester.saturdayRule as SaturdayRule) || 'SECOND_FOURTH_SATURDAY';
+    const sub = db.prepare(`
+      SELECT s.*, b.campus_id, c.name as campus_name FROM subjects s
+      JOIN batches b ON s.batch_id = b.id
+      JOIN campuses c ON b.campus_id = c.id
+      WHERE s.id = ?
+    `).get(id) as any;
 
-    const calculation = CalendarEngine.calculatePlannedTopicDates(
-      subject.semester.startDate,
-      subject.semester.endDate,
-      saturdayRule,
-      timetableSlots,
-      subject.topics,
-      holidays,
-      subject.campusId,
-      subject.batchId
-    );
+    const semester = db.prepare(`
+      SELECT * FROM semesters WHERE campus_id = ? ORDER BY start_date DESC LIMIT 1
+    `).get(sub.campus_id) as any;
 
-    // Save planned dates back to topic records
-    for (const [topicId, dateStr] of calculation.topicPlannedDates.entries()) {
-      await prisma.topic.update({
-        where: { id: topicId },
-        data: { plannedDate: new Date(dateStr) },
-      });
-    }
+    const timetableSlots = db.prepare(`
+      SELECT day_of_week, start_time, end_time FROM timetables WHERE subject_id = ?
+    `).all(id) as any[];
 
     res.json({
-      success: true,
-      allocatedCount: calculation.topicPlannedDates.size,
-      unallocatedCount: calculation.unallocatedTopicIds.length,
-      unallocatedTopicIds: calculation.unallocatedTopicIds,
+      subjectId: id,
+      subjectCode: progress.subjectCode,
+      subjectName: progress.subjectName,
+      metrics: progress,
+      auditExplanation: {
+        formulaHoursInScope: 'Sum of planned_hours for all non-skipped topics.',
+        hoursInScope: progress.hoursInScope,
+        formulaCoveredHours: 'Completed topics (100%) + In Progress topics (planned_hours * % / 100).',
+        coveredHours: progress.coveredHours,
+        remainingHours: progress.remainingHours,
+        availableTeachingHours: progress.availableHours,
+        saturdayRuleUsed: semester?.working_saturdays_rule || 'SECOND_FOURTH_SATURDAY',
+        holidaysCount: semester?.holidays_json ? JSON.parse(semester.holidays_json).length : 0,
+        timetableWeeklySlotsCount: timetableSlots.length,
+        bufferRatioFormula: 'Available Teaching Hours ÷ Remaining Planned Hours',
+        bufferRatio: progress.bufferRatio,
+        thresholdInterpretation:
+          progress.bufferRatio >= 1.15
+            ? 'ON TRACK (Buffer ≥ 1.15): Plenty of buffer sessions remain.'
+            : progress.bufferRatio >= 1.00
+            ? 'TIGHT (1.00 ≤ Buffer < 1.15): Minimal margin for unforeseen cancellations.'
+            : 'DANGER (Buffer < 1.00): Critical shortage! Classes must be added or syllabus paced faster.',
+        status: progress.status,
+      },
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// GET /api/subjects/:id/explain-calculation
-router.get('/:id/explain-calculation', authenticate, verifySubjectAccess, async (req: Request, res: Response): Promise<void> => {
+/**
+ * POST /api/subjects/:id/recalculate-dates
+ */
+router.post('/:id/recalculate-dates', authenticate, (req: AuthenticatedRequest, res: Response): void => {
   try {
     const { id } = req.params;
-    const subject = await prisma.subject.findUnique({
-      where: { id },
-      include: {
-        semester: true,
-        topics: { orderBy: { sequence: 'asc' } },
-        timetableEntries: true,
-      },
-    });
-
-    if (!subject) {
-      res.status(404).json({ error: 'Subject not found.' });
-      return;
-    }
-
-    const holidays = await prisma.holidayCalendar.findMany();
-    const timetableSlots = subject.timetableEntries.map((t) => ({
-      weekday: t.weekday,
-      durationHours: t.durationHours,
-    }));
-    const saturdayRule = (subject.semester.saturdayRule as SaturdayRule) || 'SECOND_FOURTH_SATURDAY';
-
-    const calculation = CalendarEngine.calculatePlannedTopicDates(
-      subject.semester.startDate,
-      subject.semester.endDate,
-      saturdayRule,
-      timetableSlots,
-      subject.topics,
-      holidays,
-      subject.campusId,
-      subject.batchId
-    );
-
-    res.json({
-      subjectId: subject.id,
-      subjectName: subject.name,
-      semesterDates: {
-        start: subject.semester.startDate,
-        end: subject.semester.endDate,
-        targetFinish: subject.targetFinishDate,
-      },
-      saturdayRule,
-      totalTimetableHoursPerWeek: calculation.totalTimetableHoursPerWeek,
-      unallocatedTopicsCount: calculation.unallocatedTopicIds.length,
-      steps: calculation.explanation,
-    });
+    const progress = CalculationEngine.calculateSubjectProgress(id);
+    res.json({ success: true, progression: progress });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

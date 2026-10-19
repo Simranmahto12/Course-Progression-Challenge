@@ -1,5 +1,5 @@
 module.exports = {
-  preset: 'ts-jest',
+  preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'node',
   testMatch: ['**/tests/**/*.test.ts', '**/src/**/*.test.ts'],
   moduleNameMapper: {
@@ -9,11 +9,12 @@ module.exports = {
     '^.+\\.tsx?$': [
       'ts-jest',
       {
+        useESM: true,
         tsconfig: 'tsconfig.json',
-        isolatedModules: true,
       },
     ],
   },
+  extensionsToTreatAsEsm: ['.ts'],
   moduleFileExtensions: ['ts', 'js', 'json', 'node'],
   verbose: true,
 };

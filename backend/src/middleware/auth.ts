@@ -1,7 +1,15 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { Role, UserPayload } from '../types/index.js';
-import prisma from '../lib/prisma.js';
+import { db } from '../db.js';
+
+export interface UserPayload {
+  id: string;
+  email: string;
+  name: string;
+  role: 'admin' | 'campus_manager' | 'faculty' | 'student' | 'ADMIN' | 'CAMPUS_MANAGER' | 'FACULTY' | 'STUDENT';
+  campusId?: string | null;
+  batchId?: string | null;
+}
 
 export interface AuthenticatedRequest extends Request {
   user?: UserPayload;
@@ -31,14 +39,17 @@ export const authenticate = (
   }
 };
 
-export const requireRoles = (roles: Role[]) => {
+export const requireRoles = (roles: string[]) => {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
     if (!req.user) {
       res.status(401).json({ error: 'Authentication required.' });
       return;
     }
 
-    if (!roles.includes(req.user.role)) {
+    const userRole = (req.user.role || '').toUpperCase();
+    const normalizedRequired = roles.map((r) => r.toUpperCase());
+
+    if (!normalizedRequired.includes(userRole)) {
       res.status(403).json({
         error: `Forbidden: role '${req.user.role}' is not authorized. Required: ${roles.join(', ')}`,
       });
@@ -52,17 +63,18 @@ export const requireRoles = (roles: Role[]) => {
 /**
  * Verify that the authenticated faculty owns the subject, or that user is Admin/Campus Manager.
  */
-export const verifySubjectAccess = async (
+export const verifySubjectAccess = (
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
-): Promise<void> => {
+): void => {
   if (!req.user) {
     res.status(401).json({ error: 'Authentication required.' });
     return;
   }
 
   const user = req.user;
+  const userRole = (user.role || '').toUpperCase();
   const subjectId = req.params.subjectId || req.body.subjectId || req.params.id;
 
   if (!subjectId) {
@@ -71,14 +83,16 @@ export const verifySubjectAccess = async (
   }
 
   // Admin has global access
-  if (user.role === 'ADMIN') {
+  if (userRole === 'ADMIN') {
     next();
     return;
   }
 
-  const subject = await prisma.subject.findUnique({
-    where: { id: subjectId },
-  });
+  const subject = db.prepare(`
+    SELECT s.*, b.campus_id FROM subjects s
+    JOIN batches b ON s.batch_id = b.id
+    WHERE s.id = ?
+  `).get(subjectId) as any;
 
   if (!subject) {
     res.status(404).json({ error: 'Subject not found.' });
@@ -86,8 +100,8 @@ export const verifySubjectAccess = async (
   }
 
   // Campus Manager can access subjects within their campus
-  if (user.role === 'CAMPUS_MANAGER') {
-    if (user.campusId && subject.campusId !== user.campusId) {
+  if (userRole === 'CAMPUS_MANAGER') {
+    if (user.campusId && subject.campus_id !== user.campusId) {
       res.status(403).json({ error: 'Forbidden: Access restricted to your assigned campus.' });
       return;
     }
@@ -96,8 +110,8 @@ export const verifySubjectAccess = async (
   }
 
   // Faculty can only access subjects assigned to them
-  if (user.role === 'FACULTY') {
-    if (subject.facultyId !== user.id) {
+  if (userRole === 'FACULTY') {
+    if (subject.faculty_id !== user.id) {
       res.status(403).json({
         error: 'Forbidden: Faculty can only access and modify their assigned subjects.',
       });
@@ -108,12 +122,12 @@ export const verifySubjectAccess = async (
   }
 
   // Student is read-only and restricted to their batch
-  if (user.role === 'STUDENT') {
+  if (userRole === 'STUDENT') {
     if (req.method !== 'GET') {
       res.status(403).json({ error: 'Forbidden: Students cannot modify academic records.' });
       return;
     }
-    if (user.batchId && subject.batchId !== user.batchId) {
+    if (user.batchId && subject.batch_id !== user.batchId) {
       res.status(403).json({ error: 'Forbidden: Students can only view their own batch subjects.' });
       return;
     }

@@ -1,691 +1,442 @@
 import bcrypt from 'bcryptjs';
-import prisma from './lib/prisma.js';
-import { CalendarEngine } from './services/calendarEngine.js';
-import { SaturdayRule } from './types/index.js';
+import { db, initDatabase } from './db.js';
 
-export async function seedCoreAcademicData() {
-  console.log('🌱 Seeding institutional setup for Mirai School of Technology (MSOT)...');
+export function seedDatabase() {
+  console.log('🌱 Initializing SQLite Database and Seeding Sample Data for MSOT Course Progression Platform...');
+
+  initDatabase();
+
+  // Clean existing data for clean re-seed
+  db.exec(`
+    DELETE FROM daily_logs;
+    DELETE FROM topics;
+    DELETE FROM timetables;
+    DELETE FROM exams;
+    DELETE FROM alerts;
+    DELETE FROM subjects;
+    DELETE FROM users;
+    DELETE FROM batches;
+    DELETE FROM semesters;
+    DELETE FROM tracks;
+    DELETE FROM campuses;
+  `);
 
   // 1. Campuses
-  const campusesData = [
-    { name: 'HI-Tech', code: 'HIT', city: 'Hyderabad' },
-    { name: 'Ratnam', code: 'RAT', city: 'Nellore' },
-    { name: 'RGIB', code: 'RGB', city: 'Bengaluru' },
-    { name: 'JUJ', code: 'JUJ', city: 'Jaipur' },
+  const campuses = [
+    { id: 'camp-hitech', name: 'HI-Tech' },
+    { id: 'camp-ratnam', name: 'Ratnam' },
+    { id: 'camp-rgib', name: 'RGIB' },
+    { id: 'camp-juj', name: 'JUJ' },
   ];
 
-  const campuses: Record<string, any> = {};
-  for (const c of campusesData) {
-    campuses[c.name] = await prisma.campus.upsert({
-      where: { name: c.name },
-      update: {},
-      create: c,
-    });
+  const insertCampus = db.prepare(`INSERT INTO campuses (id, name) VALUES (?, ?)`);
+  for (const c of campuses) {
+    insertCampus.run(c.id, c.name);
   }
   console.log('✔ Campuses seeded (HI-Tech, Ratnam, RGIB, JUJ)');
 
   // 2. Tracks
-  const tracksData = [
-    { name: 'Mirai Track', description: 'Industry-integrated applied AI/ML curriculum with intensive project labs' },
-    { name: 'University Track', description: 'Standard university syllabus focused on core foundational computing' },
+  const tracks = [
+    { id: 'track-mirai', name: 'Mirai Track', description: 'Industry-integrated AI/ML hands-on curriculum' },
+    { id: 'track-univ', name: 'University Track', description: 'Core academic syllabus' },
   ];
 
-  const tracks: Record<string, any> = {};
-  for (const t of tracksData) {
-    tracks[t.name] = await prisma.track.upsert({
-      where: { name: t.name },
-      update: {},
-      create: t,
-    });
+  const insertTrack = db.prepare(`INSERT INTO tracks (id, name, description) VALUES (?, ?, ?)`);
+  for (const t of tracks) {
+    insertTrack.run(t.id, t.name, t.description);
   }
   console.log('✔ Tracks seeded (Mirai Track, University Track)');
 
-  // 3. Academic Year & Semester
-  const academicYear = await prisma.academicYear.upsert({
-    where: { name: '2026-2027' },
-    update: {},
-    create: {
-      name: '2026-2027',
-      startDate: new Date('2026-08-01'),
-      endDate: new Date('2026-12-20'),
-      isCurrent: true,
-    },
-  });
+  // 3. Batches
+  const batches = [
+    { id: 'batch-hitech-mirai', campus_id: 'camp-hitech', track_id: 'track-mirai', name: 'HI-Tech AI/ML 2026 Batch A' },
+    { id: 'batch-ratnam-mirai', campus_id: 'camp-ratnam', track_id: 'track-mirai', name: 'Ratnam AI/ML 2026 Batch A' },
+    { id: 'batch-rgib-mirai', campus_id: 'camp-rgib', track_id: 'track-mirai', name: 'RGIB AI/ML 2026 Batch A' },
+    { id: 'batch-juj-mirai', campus_id: 'camp-juj', track_id: 'track-mirai', name: 'JUJ AI/ML 2026 Batch A' },
+  ];
 
-  const semester = await prisma.semester.upsert({
-    where: { id: 'sem-btech-cse-aiml-5' },
-    update: {},
-    create: {
-      id: 'sem-btech-cse-aiml-5',
-      name: 'BTech CSE (AI/ML) - Semester 5',
-      academicYearId: academicYear.id,
-      semesterNumber: 5,
-      startDate: new Date('2026-08-03'),
-      endDate: new Date('2026-12-15'),
-      targetFinishDate: new Date('2026-11-30'),
-      saturdayRule: 'SECOND_FOURTH_SATURDAY',
-      isCurrent: true,
-    },
-  });
-  console.log('✔ Academic Year (2026-2027) & Semester (Semester 5) seeded');
+  const insertBatch = db.prepare(`INSERT INTO batches (id, campus_id, track_id, name) VALUES (?, ?, ?, ?)`);
+  for (const b of batches) {
+    insertBatch.run(b.id, b.campus_id, b.track_id, b.name);
+  }
 
-  // 4. Exam Windows
-  const examWindowsData = [
+  // 4. Users (All password: 'mirai123')
+  const passwordHash = bcrypt.hashSync('mirai123', 10);
+  const users = [
     {
-      semesterId: semester.id,
-      name: 'SESSIONAL_1',
-      displayName: 'Sessional Examination 1',
-      startDate: new Date('2026-09-14'),
-      endDate: new Date('2026-09-19'),
+      id: 'usr-admin',
+      email: 'admin@mirai.edu',
+      name: 'Dr. Suresh Varma',
+      role: 'admin',
+      campus_id: 'camp-hitech',
+      batch_id: null,
     },
     {
-      semesterId: semester.id,
-      name: 'MID_TERM',
-      displayName: 'Mid-Term Examination',
-      startDate: new Date('2026-10-19'),
-      endDate: new Date('2026-10-24'),
+      id: 'usr-mgr-hitech',
+      email: 'manager.hitech@mirai.edu',
+      name: 'Priya Nair',
+      role: 'campus_manager',
+      campus_id: 'camp-hitech',
+      batch_id: null,
     },
     {
-      semesterId: semester.id,
-      name: 'PUT',
-      displayName: 'Pre-University Test (PUT)',
-      startDate: new Date('2026-11-23'),
-      endDate: new Date('2026-11-28'),
+      id: 'usr-fac-sharma',
+      email: 'faculty.sharma@mirai.edu',
+      name: 'Prof. Rajesh Sharma',
+      role: 'faculty',
+      campus_id: 'camp-hitech',
+      batch_id: null,
     },
     {
-      semesterId: semester.id,
-      name: 'END_TERM',
-      displayName: 'End-Term Examination',
-      startDate: new Date('2026-12-07'),
-      endDate: new Date('2026-12-15'),
+      id: 'usr-fac-gupta',
+      email: 'faculty.gupta@mirai.edu',
+      name: 'Dr. Ananya Gupta',
+      role: 'faculty',
+      campus_id: 'camp-hitech',
+      batch_id: null,
+    },
+    {
+      id: 'usr-stu-aarav',
+      email: 'student.aarav@mirai.edu',
+      name: 'Aarav Mehta',
+      role: 'student',
+      campus_id: 'camp-hitech',
+      batch_id: 'batch-hitech-mirai',
     },
   ];
 
-  for (const ew of examWindowsData) {
-    const existing = await prisma.examWindow.findFirst({
-      where: { semesterId: ew.semesterId, name: ew.name },
-    });
-    if (!existing) {
-      await prisma.examWindow.create({ data: ew });
-    }
+  const insertUser = db.prepare(`
+    INSERT INTO users (id, email, password_hash, name, role, campus_id, batch_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `);
+  for (const u of users) {
+    insertUser.run(u.id, u.email, passwordHash, u.name, u.role, u.campus_id, u.batch_id);
   }
-  console.log('✔ Exam Windows seeded (SESSIONAL_1, MID_TERM, PUT, END_TERM)');
+  console.log('✔ Demo Users seeded (Admin, Campus Manager, Faculty, Student - Password: mirai123)');
 
-  // 5. Batches
-  const batchesData = [
+  // 5. Semesters for each Campus
+  const holidays = [
+    { date: '2026-08-15', title: 'Independence Day' },
+    { date: '2026-10-02', title: 'Gandhi Jayanti' },
+    { date: '2026-10-20', title: 'Dussehra Break' },
+    { date: '2026-11-09', title: 'Diwali Break' },
+  ];
+  const holidaysJson = JSON.stringify(holidays);
+
+  const insertSemester = db.prepare(`
+    INSERT INTO semesters (id, campus_id, start_date, end_date, working_saturdays_rule, holidays_json)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `);
+
+  for (const c of campuses) {
+    const semId = `sem-${c.id}`;
+    insertSemester.run(semId, c.id, '2026-08-01', '2026-12-20', 'SECOND_FOURTH_SATURDAY', holidaysJson);
+
+    // 6. Exams for each semester
+    db.prepare(`
+      INSERT INTO exams (id, semester_id, name, display_name, start_date, end_date)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(`exam-mid-${c.id}`, semId, 'MID_TERM', 'Mid-Semester Examinations', '2026-10-27', '2026-11-03');
+
+    db.prepare(`
+      INSERT INTO exams (id, semester_id, name, display_name, start_date, end_date)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(`exam-final-${c.id}`, semId, 'FINAL', 'End-Semester Final Examinations', '2026-12-10', '2026-12-20');
+  }
+  console.log('✔ Semesters, Saturday Rules, Holidays, and Exam Windows seeded');
+
+  // 7. Subjects (HI-Tech Batch)
+  const subjects = [
     {
-      name: 'BTech CSE (AI/ML) - Batch A (HI-Tech)',
-      campusId: campuses['HI-Tech'].id,
-      trackId: tracks['Mirai Track'].id,
-      semesterId: semester.id,
+      id: 'sub-dsa',
+      batch_id: 'batch-hitech-mirai',
+      faculty_id: 'usr-fac-sharma',
+      code: 'CS301',
+      name: 'Data Structures & Algorithms',
+      target_finish_date: '2026-12-05',
+      color: '#7b70e1',
     },
     {
-      name: 'BTech CSE (AI/ML) - Batch B (Ratnam)',
-      campusId: campuses['Ratnam'].id,
-      trackId: tracks['Mirai Track'].id,
-      semesterId: semester.id,
+      id: 'sub-dbms',
+      batch_id: 'batch-hitech-mirai',
+      faculty_id: 'usr-fac-gupta',
+      code: 'CS302',
+      name: 'Database Systems',
+      target_finish_date: '2026-11-28', // Earlier target + fewer sessions = DANGER (demonstrates worst-subject bottleneck)
+      color: '#e7a956',
     },
     {
-      name: 'BTech CSE (AI/ML) - Batch C (RGIB)',
-      campusId: campuses['RGIB'].id,
-      trackId: tracks['University Track'].id,
-      semesterId: semester.id,
+      id: 'sub-cn',
+      batch_id: 'batch-hitech-mirai',
+      faculty_id: 'usr-fac-sharma',
+      code: 'CS303',
+      name: 'Computer Networks',
+      target_finish_date: '2026-12-05',
+      color: '#68a0df',
     },
     {
-      name: 'BTech CSE (AI/ML) - Batch D (JUJ)',
-      campusId: campuses['JUJ'].id,
-      trackId: tracks['University Track'].id,
-      semesterId: semester.id,
+      id: 'sub-ml',
+      batch_id: 'batch-hitech-mirai',
+      faculty_id: 'usr-fac-sharma',
+      code: 'AI301',
+      name: 'Machine Learning',
+      target_finish_date: '2026-12-05',
+      color: '#68bd96',
+    },
+    {
+      id: 'sub-os',
+      batch_id: 'batch-hitech-mirai',
+      faculty_id: 'usr-fac-gupta',
+      code: 'CS304',
+      name: 'Operating Systems',
+      target_finish_date: '2026-12-05',
+      color: '#e98783',
+    },
+    {
+      id: 'sub-ai',
+      batch_id: 'batch-hitech-mirai',
+      faculty_id: 'usr-fac-sharma',
+      code: 'AI302',
+      name: 'Artificial Intelligence',
+      target_finish_date: '2026-12-05',
+      color: '#7daab0',
     },
   ];
 
-  const batches: Record<string, any> = {};
-  for (const b of batchesData) {
-    batches[b.name] = await prisma.batch.upsert({
-      where: { name: b.name },
-      update: {},
-      create: b,
-    });
+  const insertSubject = db.prepare(`
+    INSERT INTO subjects (id, batch_id, faculty_id, code, name, target_finish_date, color)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `);
+  for (const s of subjects) {
+    insertSubject.run(s.id, s.batch_id, s.faculty_id, s.code, s.name, s.target_finish_date, s.color);
   }
-  console.log('✔ Batches seeded across campuses and tracks');
+  console.log('✔ Subjects seeded with color coding and target finish dates');
 
-  // 6. Users (Demo credentials with bcrypt 'mirai123')
-  const defaultPasswordHash = await bcrypt.hash('mirai123', 10);
-
-  const usersData = [
-    {
-      email: 'admin@mirai.edu.in',
-      name: 'Dr. Suresh Varma (Program Director)',
-      role: 'ADMIN',
-      campusId: null,
-      batchId: null,
-    },
-    {
-      email: 'manager.hitech@mirai.edu.in',
-      name: 'Kavita Reddy (Campus Manager HI-Tech)',
-      role: 'CAMPUS_MANAGER',
-      campusId: campuses['HI-Tech'].id,
-      batchId: null,
-    },
-    {
-      email: 'manager.ratnam@mirai.edu.in',
-      name: 'Ramesh Naidu (Campus Manager Ratnam)',
-      role: 'CAMPUS_MANAGER',
-      campusId: campuses['Ratnam'].id,
-      batchId: null,
-    },
-    {
-      email: 'faculty1@mirai.edu.in',
-      name: 'Vishal Rathee',
-      role: 'FACULTY',
-      campusId: campuses['HI-Tech'].id,
-      batchId: null,
-    },
-    {
-      email: 'faculty2@mirai.edu.in',
-      name: 'Varun Kumar Sharma',
-      role: 'FACULTY',
-      campusId: campuses['HI-Tech'].id,
-      batchId: null,
-    },
-    {
-      email: 'aman.srivastava@mirai.edu.in',
-      name: 'Aman Srivastava',
-      role: 'FACULTY',
-      campusId: campuses['HI-Tech'].id,
-      batchId: null,
-    },
-    {
-      email: 'himanshu.sharma@mirai.edu.in',
-      name: 'Himanshu Sharma Kumar',
-      role: 'FACULTY',
-      campusId: campuses['HI-Tech'].id,
-      batchId: null,
-    },
-    {
-      email: 'gaurav.singh@mirai.edu.in',
-      name: 'Gaurav Singh Singh',
-      role: 'FACULTY',
-      campusId: campuses['HI-Tech'].id,
-      batchId: null,
-    },
-    {
-      email: 'soniya.tyagi@mirai.edu.in',
-      name: 'Soniya Tyagi',
-      role: 'FACULTY',
-      campusId: campuses['HI-Tech'].id,
-      batchId: null,
-    },
-    {
-      email: 'suman.rajput@mirai.edu.in',
-      name: 'Dr Suman Rajput',
-      role: 'FACULTY',
-      campusId: campuses['HI-Tech'].id,
-      batchId: null,
-    },
-    {
-      email: 'faculty3@mirai.edu.in',
-      name: 'Dr. Vikram Verma',
-      role: 'FACULTY',
-      campusId: campuses['Ratnam'].id,
-      batchId: null,
-    },
-    {
-      email: 'student@mirai.edu.in',
-      name: 'Aarav Patel (Student BTech CSE AI/ML)',
-      role: 'STUDENT',
-      campusId: campuses['HI-Tech'].id,
-      batchId: batches['BTech CSE (AI/ML) - Batch A (HI-Tech)'].id,
-    },
-  ];
-
-  const users: Record<string, any> = {};
-  for (const u of usersData) {
-    users[u.email] = await prisma.user.upsert({
-      where: { email: u.email },
-      update: {
-        name: u.name,
-        role: u.role,
-        campusId: u.campusId,
-        batchId: u.batchId,
-      },
-      create: {
-        ...u,
-        passwordHash: defaultPasswordHash,
-      },
-    });
-  }
-  console.log('✔ Demo Users seeded (Admin, Campus Managers, Faculty, Student) - password: "mirai123"');
-
-  // 7. System Settings
-  await prisma.systemSettings.upsert({
-    where: { id: 'default-settings' },
-    update: {},
-    create: {
-      id: 'default-settings',
-      onTrackThreshold: 1.15,
-      tightThreshold: 1.00,
-      defaultSaturdayRule: 'SECOND_FOURTH_SATURDAY',
-      academicYearName: '2026-2027',
-    },
-  });
-  console.log('✔ System Settings seeded (On-Track: >= 1.15, Tight: >= 1.00, Saturday Rule: 2nd & 4th)');
-
-  // 8. Holidays
-  const holidaysData = [
-    { date: new Date('2026-08-15'), title: 'Independence Day', type: 'HOLIDAY', isTeachingSuspended: true },
-    { date: new Date('2026-09-07'), title: 'Ganesh Chaturthi', type: 'HOLIDAY', isTeachingSuspended: true },
-    { date: new Date('2026-10-02'), title: 'Mahatma Gandhi Jayanti', type: 'HOLIDAY', isTeachingSuspended: true },
-    { date: new Date('2026-10-20'), title: 'Dussehra / Vijaya Dashami', type: 'HOLIDAY', isTeachingSuspended: true },
-    { date: new Date('2026-11-09'), title: 'Diwali Break Day 1', type: 'HOLIDAY', isTeachingSuspended: true },
-    { date: new Date('2026-11-10'), title: 'Diwali Break Day 2', type: 'HOLIDAY', isTeachingSuspended: true },
-    { date: new Date('2026-11-14'), title: 'Childrens Day Tech Fest', type: 'EVENT', isTeachingSuspended: false },
-  ];
-
-  for (const h of holidaysData) {
-    const existing = await prisma.holidayCalendar.findFirst({
-      where: { date: h.date, title: h.title },
-    });
-    if (!existing) {
-      await prisma.holidayCalendar.create({ data: h });
-    }
-  }
-  console.log('✔ Institutional Calendar & Holidays seeded');
-
-  return { campuses, tracks, semester, batches, users };
-}
-
-export async function seedSubjectsAndProgress(academicData: any) {
-  console.log('\n📚 Seeding BTech CSE (AI/ML) subjects and assigning faculty...');
-  const { campuses, tracks, semester, batches, users } = academicData;
-
-  const batchA = batches['BTech CSE (AI/ML) - Batch A (HI-Tech)'];
-  const faculty1 = users['faculty1@mirai.edu.in']; // Dr. Rajesh Kumar
-  const faculty2 = users['faculty2@mirai.edu.in']; // Prof. Anita Sharma
-
-  // 1. Subject 1: DSA in c++
-  const dsaSubject = await prisma.subject.upsert({
-    where: {
-      code_campusId_batchId: {
-        code: 'CS501',
-        campusId: campuses['HI-Tech'].id,
-        batchId: batchA.id,
-      },
-    },
-    update: {
-      name: 'DSA in c++',
-      trackId: tracks['Mirai Track'].id,
-      plannedHours: 44.5,
-      facultyId: faculty1.id,
-    },
-    create: {
-      code: 'CS501',
-      name: 'DSA in c++',
-      campusId: campuses['HI-Tech'].id,
-      trackId: tracks['Mirai Track'].id,
-      semesterId: semester.id,
-      batchId: batchA.id,
-      facultyId: faculty1.id,
-      plannedHours: 44.5,
-      targetFinishDate: new Date('2026-11-30'),
-      color: '#4f46e5',
-    },
-  });
-
-  // 2. Subject 2: Web development
-  const webSubject = await prisma.subject.upsert({
-    where: {
-      code_campusId_batchId: {
-        code: 'CS502',
-        campusId: campuses['HI-Tech'].id,
-        batchId: batchA.id,
-      },
-    },
-    update: {
-      name: 'Web development',
-      trackId: tracks['Mirai Track'].id,
-      plannedHours: 40.0,
-      facultyId: faculty2.id,
-    },
-    create: {
-      code: 'CS502',
-      name: 'Web development',
-      campusId: campuses['HI-Tech'].id,
-      trackId: tracks['Mirai Track'].id,
-      semesterId: semester.id,
-      batchId: batchA.id,
-      facultyId: faculty2.id,
-      plannedHours: 40.0,
-      targetFinishDate: new Date('2026-11-30'),
-      color: '#0891b2',
-    },
-  });
-
-  const universitySubjects = [
-    { code: 'CS503', name: 'IKS', faculty: users['gaurav.singh@mirai.edu.in'] },
-    { code: 'EE101', name: 'Fundamentals of Electrical Engg.', faculty: users['aman.srivastava@mirai.edu.in'] },
-    { code: 'PHY101', name: 'Physics', faculty: users['himanshu.sharma@mirai.edu.in'] },
-    { code: 'WEB101', name: 'Internet & Web Basics', faculty: faculty2 },
-    { code: 'CS504', name: 'Introduction to prompt Eng', faculty: faculty1 },
-    { code: 'LAN101', name: 'Language lab', faculty: users['soniya.tyagi@mirai.edu.in'] },
-    { code: 'PHY102', name: 'Physics Lab', faculty: users['suman.rajput@mirai.edu.in'] },
-    { code: 'MAT101', name: 'Mathematics-I', faculty: users['gaurav.singh@mirai.edu.in'] },
-    { code: 'CS505', name: 'Programming language', faculty: faculty1 },
-  ];
-
-  for (const subject of universitySubjects) {
-    await prisma.subject.upsert({
-      where: {
-        code_campusId_batchId: {
-          code: subject.code,
-          campusId: campuses['HI-Tech'].id,
-          batchId: batchA.id,
-        },
-      },
-      update: {
-        name: subject.name,
-        trackId: tracks['University Track'].id,
-        facultyId: subject.faculty.id,
-      },
-      create: {
-        code: subject.code,
-        name: subject.name,
-        campusId: campuses['HI-Tech'].id,
-        trackId: tracks['University Track'].id,
-        semesterId: semester.id,
-        batchId: batchA.id,
-        facultyId: subject.faculty.id,
-        plannedHours: 0,
-        targetFinishDate: semester.targetFinishDate,
-        color: '#2563eb',
-      },
-    });
-  }
-
-  console.log('✔ Subjects seeded: DSA and Web development (Mirai Track); nine other subjects (University Track)');
-
-  // 3. Lesson Plans for DSA in c++
-  const dsaTopics = [
-    { unit: 'Unit 1: Foundations & STL', sequence: 1, name: 'C++ STL Containers (vector, list, deque) & Iterators', plannedHours: 3.0, examScopes: 'SESSIONAL_1,MID_TERM,PUT,END_TERM', status: 'COMPLETED', completionPercentage: 100, coveredHours: 3.0 },
-    { unit: 'Unit 1: Foundations & STL', sequence: 2, name: 'Asymptotic Complexity & Big-O Analysis in C++', plannedHours: 2.0, examScopes: 'SESSIONAL_1,MID_TERM,PUT,END_TERM', status: 'COMPLETED', completionPercentage: 100, coveredHours: 2.0 },
-    { unit: 'Unit 1: Foundations & STL', sequence: 3, name: 'STL Algorithms, Sorts & Lambda Expressions', plannedHours: 3.0, examScopes: 'SESSIONAL_1,MID_TERM,PUT,END_TERM', status: 'COMPLETED', completionPercentage: 100, coveredHours: 3.0 },
-    { unit: 'Unit 2: Linear Structures', sequence: 4, name: 'Singly and Doubly Linked Lists with Smart Pointers', plannedHours: 4.0, examScopes: 'SESSIONAL_1,MID_TERM,PUT,END_TERM', status: 'COMPLETED', completionPercentage: 100, coveredHours: 4.0 },
-    { unit: 'Unit 2: Linear Structures', sequence: 5, name: 'Stacks, Queues & Monotonic Queue Optimization', plannedHours: 3.5, examScopes: 'MID_TERM,PUT,END_TERM', status: 'COMPLETED', completionPercentage: 100, coveredHours: 3.5 },
-    { unit: 'Unit 2: Linear Structures', sequence: 6, name: 'Hash Tables, Collisions & unordered_map Internals', plannedHours: 3.5, examScopes: 'MID_TERM,PUT,END_TERM', status: 'IN_PROGRESS', completionPercentage: 60, coveredHours: 2.1 },
-    { unit: 'Unit 3: Hierarchical Structures', sequence: 7, name: 'Binary Trees, BST Traversals & Morris Traversal', plannedHours: 5.0, examScopes: 'MID_TERM,PUT,END_TERM', status: 'PENDING', completionPercentage: 0, coveredHours: 0.0 },
-    { unit: 'Unit 3: Hierarchical Structures', sequence: 8, name: 'Balanced Search Trees (AVL & Red-Black Trees)', plannedHours: 4.5, examScopes: 'PUT,END_TERM', status: 'PENDING', completionPercentage: 0, coveredHours: 0.0 },
-    { unit: 'Unit 3: Hierarchical Structures', sequence: 9, name: 'Priority Queues, Binary Heaps & HeapSort', plannedHours: 3.5, examScopes: 'PUT,END_TERM', status: 'PENDING', completionPercentage: 0, coveredHours: 0.0 },
-    { unit: 'Unit 4: Graphs & Optimization', sequence: 10, name: 'Graph Representations, BFS & DFS in C++', plannedHours: 4.0, examScopes: 'PUT,END_TERM', status: 'PENDING', completionPercentage: 0, coveredHours: 0.0 },
-    { unit: 'Unit 4: Graphs & Optimization', sequence: 11, name: 'Shortest Paths (Dijkstra, Bellman-Ford) & MST', plannedHours: 4.5, examScopes: 'END_TERM', status: 'PENDING', completionPercentage: 0, coveredHours: 0.0 },
-    { unit: 'Unit 4: Graphs & Optimization', sequence: 12, name: 'Dynamic Programming & Memoization on Graphs', plannedHours: 4.0, examScopes: 'END_TERM', status: 'PENDING', completionPercentage: 0, coveredHours: 0.0 },
-  ];
-
-  await prisma.topic.deleteMany({ where: { subjectId: dsaSubject.id } });
-  for (const t of dsaTopics) {
-    await prisma.topic.create({
-      data: {
-        subjectId: dsaSubject.id,
-        unit: t.unit,
-        sequence: t.sequence,
-        name: t.name,
-        plannedHours: t.plannedHours,
-        examScopes: t.examScopes,
-        status: t.status,
-        completionPercentage: t.completionPercentage,
-        coveredHours: t.coveredHours,
-      },
-    });
-  }
-  console.log(`✔ DSA in c++: ${dsaTopics.length} syllabus topics created`);
-
-  // 4. Lesson Plans for Web development
-  const webTopics = [
-    { unit: 'Unit 1: Modern Frontend', sequence: 1, name: 'Semantic HTML5, CSS Grid, Flexbox & Responsive Layouts', plannedHours: 3.0, examScopes: 'SESSIONAL_1,MID_TERM,PUT,END_TERM', status: 'COMPLETED', completionPercentage: 100, coveredHours: 3.0 },
-    { unit: 'Unit 1: Modern Frontend', sequence: 2, name: 'Modern JavaScript (ES6+, Async/Await, Closures, DOM API)', plannedHours: 4.0, examScopes: 'SESSIONAL_1,MID_TERM,PUT,END_TERM', status: 'COMPLETED', completionPercentage: 100, coveredHours: 4.0 },
-    { unit: 'Unit 1: Modern Frontend', sequence: 3, name: 'TypeScript Foundations & Type Safety in Web Apps', plannedHours: 3.0, examScopes: 'SESSIONAL_1,MID_TERM,PUT,END_TERM', status: 'COMPLETED', completionPercentage: 100, coveredHours: 3.0 },
-    { unit: 'Unit 2: React & Components', sequence: 4, name: 'React Components, Props, JSX & Virtual DOM', plannedHours: 4.0, examScopes: 'SESSIONAL_1,MID_TERM,PUT,END_TERM', status: 'COMPLETED', completionPercentage: 100, coveredHours: 4.0 },
-    { unit: 'Unit 2: React & Components', sequence: 5, name: 'React Hooks (useState, useEffect, useMemo, custom hooks)', plannedHours: 4.5, examScopes: 'MID_TERM,PUT,END_TERM', status: 'IN_PROGRESS', completionPercentage: 50, coveredHours: 2.25 },
-    { unit: 'Unit 2: React & Components', sequence: 6, name: 'State Management & Client-Side Routing', plannedHours: 3.5, examScopes: 'MID_TERM,PUT,END_TERM', status: 'PENDING', completionPercentage: 0, coveredHours: 0.0 },
-    { unit: 'Unit 3: Full-Stack APIs', sequence: 7, name: 'REST API Design, Node.js & Express Server Architecture', plannedHours: 4.0, examScopes: 'MID_TERM,PUT,END_TERM', status: 'PENDING', completionPercentage: 0, coveredHours: 0.0 },
-    { unit: 'Unit 3: Full-Stack APIs', sequence: 8, name: 'Relational Database Modeling, SQL & Prisma ORM', plannedHours: 4.5, examScopes: 'PUT,END_TERM', status: 'PENDING', completionPercentage: 0, coveredHours: 0.0 },
-    { unit: 'Unit 3: Full-Stack APIs', sequence: 9, name: 'Authentication & Security (JWT, bcrypt, CORS, OWASP)', plannedHours: 3.5, examScopes: 'PUT,END_TERM', status: 'PENDING', completionPercentage: 0, coveredHours: 0.0 },
-    { unit: 'Unit 4: Testing & Deployment', sequence: 10, name: 'Frontend & Backend Automated Testing (Jest, Supertest)', plannedHours: 3.0, examScopes: 'PUT,END_TERM', status: 'PENDING', completionPercentage: 0, coveredHours: 0.0 },
-    { unit: 'Unit 4: Testing & Deployment', sequence: 11, name: 'Web Performance Optimization & Core Web Vitals', plannedHours: 3.0, examScopes: 'END_TERM', status: 'PENDING', completionPercentage: 0, coveredHours: 0.0 },
-  ];
-
-  await prisma.topic.deleteMany({ where: { subjectId: webSubject.id } });
-  for (const t of webTopics) {
-    await prisma.topic.create({
-      data: {
-        subjectId: webSubject.id,
-        unit: t.unit,
-        sequence: t.sequence,
-        name: t.name,
-        plannedHours: t.plannedHours,
-        examScopes: t.examScopes,
-        status: t.status,
-        completionPercentage: t.completionPercentage,
-        coveredHours: t.coveredHours,
-      },
-    });
-  }
-  console.log(`✔ Web development: ${webTopics.length} syllabus topics created`);
-
-  // 5. Timetable Entries
-  // DSA in c++: Mon 09:00-10:30 (1.5h), Wed 09:00-10:30 (1.5h), Fri 14:00-16:00 (2.0h) -> 5.0h/week
-  await prisma.timetableEntry.deleteMany({ where: { subjectId: dsaSubject.id } });
-  await prisma.timetableEntry.createMany({
-    data: [
-      { campusId: campuses['HI-Tech'].id, batchId: batchA.id, subjectId: dsaSubject.id, facultyId: faculty1.id, weekday: 1, startTime: '09:00', endTime: '10:30', durationHours: 1.5, roomNumber: 'LH-101' },
-      { campusId: campuses['HI-Tech'].id, batchId: batchA.id, subjectId: dsaSubject.id, facultyId: faculty1.id, weekday: 3, startTime: '09:00', endTime: '10:30', durationHours: 1.5, roomNumber: 'LH-101' },
-      { campusId: campuses['HI-Tech'].id, batchId: batchA.id, subjectId: dsaSubject.id, facultyId: faculty1.id, weekday: 5, startTime: '14:00', endTime: '16:00', durationHours: 2.0, roomNumber: 'Lab-3 (AI/ML)' },
+  // 8. Topics for each subject
+  const topicTemplates: Record<string, string[]> = {
+    'sub-dsa': [
+      'Asymptotic Notation & Time Complexity',
+      'Arrays & Dynamic Memory Allocation',
+      'Singly & Doubly Linked Lists',
+      'Stacks, Queues & Circular Queues',
+      'Binary Trees & Traversals',
+      'Binary Search Trees (BST)',
+      'AVL Trees & Rotations',
+      'Heaps & Priority Queues',
+      'Graph Representations & BFS/DFS',
+      'Dijkstra Shortest Path Algorithm',
+      'Minimum Spanning Trees (Kruskal/Prim)',
+      'Dynamic Programming: Memoization',
+      'Knapsack & Longest Common Subsequence',
+      'B-Trees and Advanced Indexing',
     ],
-  });
-
-  // Web development: Tue 10:00-11:30 (1.5h), Thu 10:00-11:30 (1.5h), Fri 10:00-12:00 (2.0h) -> 5.0h/week
-  await prisma.timetableEntry.deleteMany({ where: { subjectId: webSubject.id } });
-  await prisma.timetableEntry.createMany({
-    data: [
-      { campusId: campuses['HI-Tech'].id, batchId: batchA.id, subjectId: webSubject.id, facultyId: faculty2.id, weekday: 2, startTime: '10:00', endTime: '11:30', durationHours: 1.5, roomNumber: 'LH-102' },
-      { campusId: campuses['HI-Tech'].id, batchId: batchA.id, subjectId: webSubject.id, facultyId: faculty2.id, weekday: 4, startTime: '10:00', endTime: '11:30', durationHours: 1.5, roomNumber: 'LH-102' },
-      { campusId: campuses['HI-Tech'].id, batchId: batchA.id, subjectId: webSubject.id, facultyId: faculty2.id, weekday: 5, startTime: '10:00', endTime: '12:00', durationHours: 2.0, roomNumber: 'Web-Lab' },
+    'sub-dbms': [
+      'Relational Model & Relational Algebra',
+      'Entity-Relationship (ER) Modeling',
+      'Advanced SQL & Nested Queries',
+      'Functional Dependencies & 1NF/2NF',
+      '3NF and Boyce-Codd Normal Form (BCNF)',
+      'Transaction Properties & ACID Rules',
+      'Serializability & Concurrency Control',
+      'Locking Protocols & Two-Phase Locking',
+      'Deadlock Detection & Prevention',
+      'B+ Tree Indexing in Relational Engines',
+      'Query Execution & Cost Optimization',
+      'Crash Recovery & Write-Ahead Logging (WAL)',
     ],
-  });
-  console.log('✔ Timetable entries created for DSA in c++ and Web development (5.0h/week each)');
+    'sub-cn': [
+      'OSI vs TCP/IP Protocol Layers',
+      'Physical Layer & Transmission Media',
+      'Data Link Framing & Flow Control',
+      'Error Detection: Parity & CRC',
+      'Ethernet & MAC Sublayer',
+      'IPv4 Addressing & Subnetting',
+      'Routing Algorithms: Distance Vector & Link State',
+      'OSPF & BGP Routing Protocols',
+      'TCP 3-Way Handshake & Flow Control',
+      'Congestion Control Algorithms',
+      'DNS & HTTP/HTTPS Protocols',
+      'Network Security: TLS & Firewalls',
+    ],
+    'sub-ml': [
+      'Introduction to Machine Learning Paradigms',
+      'Linear Regression & Gradient Descent',
+      'Logistic Regression & Decision Boundaries',
+      'Overfitting, Regularization (L1/L2)',
+      'Support Vector Machines (SVM)',
+      'Decision Trees & Information Gain',
+      'Random Forests & Ensemble Bagging',
+      'Gradient Boosting (XGBoost/LightGBM)',
+      'K-Means Clustering & Hierarchical Clustering',
+      'Principal Component Analysis (PCA)',
+      'Neural Networks: Perceptrons & Backpropagation',
+      'Evaluation Metrics: Precision, Recall, ROC-AUC',
+    ],
+    'sub-os': [
+      'Operating System Architectures & System Calls',
+      'Processes, Threads & Concurrency',
+      'CPU Scheduling Algorithms',
+      'Process Synchronization: Semaphores & Mutexes',
+      'Classical Synchronization Problems',
+      'Deadlocks: Avoidance with Banker Algorithm',
+      'Memory Management: Paging & Segmentation',
+      'Virtual Memory & Page Replacement',
+      'File System Implementation & Inodes',
+      'I/O Systems & Disk Scheduling',
+    ],
+    'sub-ai': [
+      'Foundations of Artificial Intelligence',
+      'State Space Search & Uninformed Search',
+      'Informed Search: A* Algorithm & Heuristics',
+      'Adversarial Search: Minimax & Alpha-Beta',
+      'Constraint Satisfaction Problems (CSP)',
+      'Knowledge Representation & First-Order Logic',
+      'Probabilistic Reasoning & Bayesian Networks',
+      'Markov Decision Processes (MDP)',
+      'Reinforcement Learning: Q-Learning',
+      'Introduction to Generative AI & Transformers',
+    ],
+  };
 
-  // 6. Calculate & Store Planned Dates via CalendarEngine
-  const holidays = await prisma.holidayCalendar.findMany();
-  const rule = (semester.saturdayRule as SaturdayRule) || 'SECOND_FOURTH_SATURDAY';
+  const insertTopic = db.prepare(`
+    INSERT INTO topics (id, subject_id, unit_name, topic_name, planned_hours, exam_scope_flag, sequence, status, percentage_complete, planned_date)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
 
-  for (const sub of [dsaSubject, webSubject]) {
-    const slots = await prisma.timetableEntry.findMany({ where: { subjectId: sub.id } });
-    const timetableSlots = slots.map((s) => ({ weekday: s.weekday, durationHours: s.durationHours }));
-    const topicsList = await prisma.topic.findMany({ where: { subjectId: sub.id }, orderBy: { sequence: 'asc' } });
+  for (const [subId, topicList] of Object.entries(topicTemplates)) {
+    topicList.forEach((name, idx) => {
+      const seq = idx + 1;
+      const id = `top-${subId}-${seq}`;
+      const unit = `Unit ${Math.ceil(seq / 3)}`;
+      const plannedHours = 2.0;
+      const examScope = seq <= 6 ? 'MID_TERM,FINAL' : 'FINAL';
 
-    const calc = CalendarEngine.calculatePlannedTopicDates(
-      semester.startDate,
-      semester.endDate,
-      rule,
-      timetableSlots,
-      topicsList,
-      holidays,
-      sub.campusId,
-      sub.batchId
+      // Set initial status to demonstrate realistic progress:
+      // DSA: 10 topics completed (~71% progress)
+      // DBMS: 4 topics completed (~33% progress) -> Creates the DANGER state
+      // ML: 6 topics completed (~50% progress) -> Creates TIGHT state
+      let status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'SKIPPED' = 'PENDING';
+      let pct = 0;
+
+      if (subId === 'sub-dsa') {
+        if (seq <= 10) { status = 'COMPLETED'; pct = 100; }
+        else if (seq === 11) { status = 'IN_PROGRESS'; pct = 50; }
+      } else if (subId === 'sub-dbms') {
+        if (seq <= 4) { status = 'COMPLETED'; pct = 100; }
+        else if (seq === 5) { status = 'IN_PROGRESS'; pct = 25; }
+      } else if (subId === 'sub-ml') {
+        if (seq <= 6) { status = 'COMPLETED'; pct = 100; }
+        else if (seq === 7) { status = 'IN_PROGRESS'; pct = 50; }
+      } else if (subId === 'sub-cn') {
+        if (seq <= 8) { status = 'COMPLETED'; pct = 100; }
+      } else if (subId === 'sub-os') {
+        if (seq <= 7) { status = 'COMPLETED'; pct = 100; }
+      } else if (subId === 'sub-ai') {
+        if (seq <= 7) { status = 'COMPLETED'; pct = 100; }
+      }
+
+      insertTopic.run(id, subId, unit, name, plannedHours, examScope, seq, status, pct, '2026-10-15');
+    });
+  }
+  console.log('✔ Topics seeded across all units with planned hours and exam scope flags');
+
+  // 9. Timetable Slots
+  const timetableSlots = [
+    // Monday
+    { id: 'tt-mon-1', day: 'Monday', start: '09:00', end: '10:30', subId: 'sub-dsa', facId: 'usr-fac-sharma', room: 'Room 204' },
+    { id: 'tt-mon-2', day: 'Monday', start: '11:00', end: '12:30', subId: 'sub-cn', facId: 'usr-fac-sharma', room: 'Room 108' },
+    { id: 'tt-mon-3', day: 'Monday', start: '14:00', end: '15:30', subId: 'sub-ml', facId: 'usr-fac-sharma', room: 'Lab 03' },
+    // Tuesday
+    { id: 'tt-tue-1', day: 'Tuesday', start: '09:00', end: '10:30', subId: 'sub-dbms', facId: 'usr-fac-gupta', room: 'Room 105' },
+    { id: 'tt-tue-2', day: 'Tuesday', start: '11:00', end: '12:30', subId: 'sub-os', facId: 'usr-fac-gupta', room: 'Room 204' },
+    { id: 'tt-tue-3', day: 'Tuesday', start: '14:00', end: '15:30', subId: 'sub-ai', facId: 'usr-fac-sharma', room: 'Room 108' },
+    // Wednesday
+    { id: 'tt-wed-1', day: 'Wednesday', start: '09:00', end: '10:30', subId: 'sub-dsa', facId: 'usr-fac-sharma', room: 'Room 204' },
+    { id: 'tt-wed-2', day: 'Wednesday', start: '11:00', end: '12:30', subId: 'sub-cn', facId: 'usr-fac-sharma', room: 'Room 108' },
+    { id: 'tt-wed-3', day: 'Wednesday', start: '14:00', end: '15:30', subId: 'sub-ml', facId: 'usr-fac-sharma', room: 'Lab 03' },
+    // Thursday
+    { id: 'tt-thu-1', day: 'Thursday', start: '09:00', end: '10:30', subId: 'sub-dbms', facId: 'usr-fac-gupta', room: 'Room 105' },
+    { id: 'tt-thu-2', day: 'Thursday', start: '11:00', end: '12:30', subId: 'sub-os', facId: 'usr-fac-gupta', room: 'Room 204' },
+    { id: 'tt-thu-3', day: 'Thursday', start: '14:00', end: '15:30', subId: 'sub-ai', facId: 'usr-fac-sharma', room: 'Room 108' },
+    // Friday
+    { id: 'tt-fri-1', day: 'Friday', start: '09:00', end: '10:30', subId: 'sub-dsa', facId: 'usr-fac-sharma', room: 'Room 204' },
+    { id: 'tt-fri-2', day: 'Friday', start: '11:00', end: '12:30', subId: 'sub-dbms', facId: 'usr-fac-gupta', room: 'Room 105' },
+    { id: 'tt-fri-3', day: 'Friday', start: '14:00', end: '15:30', subId: 'sub-ml', facId: 'usr-fac-sharma', room: 'Lab 03' },
+    // Working Saturday
+    { id: 'tt-sat-1', day: 'Saturday', start: '10:00', end: '12:00', subId: 'sub-ai', facId: 'usr-fac-sharma', room: 'Auditorium' },
+  ];
+
+  const insertTimetable = db.prepare(`
+    INSERT INTO timetables (id, batch_id, subject_id, faculty_id, day_of_week, start_time, end_time, room)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  for (const slot of timetableSlots) {
+    insertTimetable.run(
+      slot.id,
+      'batch-hitech-mirai',
+      slot.subId,
+      slot.facId,
+      slot.day,
+      slot.start,
+      slot.end,
+      slot.room
     );
-
-    for (const [topId, dateStr] of calc.topicPlannedDates.entries()) {
-      await prisma.topic.update({
-        where: { id: topId },
-        data: { plannedDate: new Date(dateStr) },
-      });
-    }
   }
-  console.log('✔ Deterministic planned dates calculated and assigned for all syllabus topics');
+  console.log('✔ Weekly Timetables seeded across Monday through Saturday');
 
-  // 7. Seed Scheduled Sessions & Today Sessions for Demo
-  const today = new Date();
-  const todayDateStr = CalendarEngine.formatDateOnly(today);
-  const todayWeekday = today.getDay(); // 0-6
+  // 10. Sample Daily Logs
+  const todayStr = new Date().toISOString().split('T')[0];
+  const insertLog = db.prepare(`
+    INSERT INTO daily_logs (id, session_date, timetable_id, faculty_id, status, percentage_complete, topics_covered, leftovers, notes, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
 
-  // Generate a scheduled session for today for faculty1
-  const todayDsaSlot = await prisma.timetableEntry.findFirst({
-    where: { subjectId: dsaSubject.id },
-  });
+  insertLog.run(
+    'log-sample-1',
+    todayStr,
+    'tt-mon-1',
+    'usr-fac-sharma',
+    'Completed',
+    100,
+    'Minimum Spanning Trees (Kruskal/Prim)',
+    'None',
+    'Class was engaged. Good participation on Kruskal algorithm complexity.',
+    new Date().toISOString()
+  );
 
-  if (todayDsaSlot) {
-    const todaySession = await prisma.scheduledSession.upsert({
-      where: {
-        subjectId_sessionDate_startTime: {
-          subjectId: dsaSubject.id,
-          sessionDate: new Date(`${todayDateStr}T00:00:00.000Z`),
-          startTime: todayDsaSlot.startTime,
-        },
-      },
-      update: {},
-      create: {
-        timetableEntryId: todayDsaSlot.id,
-        subjectId: dsaSubject.id,
-        facultyId: faculty1.id,
-        batchId: batchA.id,
-        campusId: campuses['HI-Tech'].id,
-        sessionDate: new Date(`${todayDateStr}T00:00:00.000Z`),
-        startTime: todayDsaSlot.startTime,
-        endTime: todayDsaSlot.endTime,
-        durationHours: todayDsaSlot.durationHours,
-        status: 'SCHEDULED',
-        hasLog: false,
-      },
-    });
-    console.log(`✔ Today scheduled session created for DSA in c++ (${todayDsaSlot.startTime})`);
-  }
+  // 11. Alerts (Missed log alerts & escalations)
+  const insertAlert = db.prepare(`
+    INSERT INTO alerts (id, subject_id, recipient_user_id, type, title, message, status, scheduled_date, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
 
-  // Also seed past logged sessions to show audit history and realistic progress logs
-  const pastSessionDate = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
-  const pastSessionDateStr = CalendarEngine.formatDateOnly(pastSessionDate);
+  insertAlert.run(
+    'alert-1',
+    'sub-dbms',
+    'usr-mgr-hitech',
+    'CAMPUS_MANAGER_ESCALATION',
+    'Database Systems is falling behind',
+    'Buffer ratio has dropped below 1.00 (Critical Shortage). 3 buffer sessions need to be scheduled.',
+    'PENDING',
+    todayStr,
+    new Date().toISOString()
+  );
 
-  const pastSession = await prisma.scheduledSession.upsert({
-    where: {
-      subjectId_sessionDate_startTime: {
-        subjectId: dsaSubject.id,
-        sessionDate: new Date(`${pastSessionDateStr}T00:00:00.000Z`),
-        startTime: '09:00',
-      },
-    },
-    update: {},
-    create: {
-      subjectId: dsaSubject.id,
-      facultyId: faculty1.id,
-      batchId: batchA.id,
-      campusId: campuses['HI-Tech'].id,
-      sessionDate: new Date(`${pastSessionDateStr}T00:00:00.000Z`),
-      startTime: '09:00',
-      endTime: '10:30',
-      durationHours: 1.5,
-      status: 'COMPLETED',
-      hasLog: true,
-    },
-  });
+  insertAlert.run(
+    'alert-2',
+    'sub-cn',
+    'usr-fac-sharma',
+    'FACULTY_REMINDER',
+    '1 session is waiting for a log',
+    'Computer Networks session yesterday at 11:30 AM is waiting for confirmation.',
+    'PENDING',
+    todayStr,
+    new Date().toISOString()
+  );
 
-  const existingLog = await prisma.sessionLog.findFirst({
-    where: { scheduledSessionId: pastSession.id },
-  });
-
-  if (!existingLog) {
-    const log = await prisma.sessionLog.create({
-      data: {
-        scheduledSessionId: pastSession.id,
-        subjectId: dsaSubject.id,
-        facultyId: faculty1.id,
-        date: pastSession.sessionDate,
-        status: 'COMPLETED',
-        actualHours: 1.5,
-        topicsCovered: JSON.stringify([{ topicName: 'C++ STL Containers (vector, list, deque)', completionPercentage: 100 }]),
-        whatWasCovered: 'Vector amortized doubling, iterator invalidation rules, std::deque block structure',
-        whatWasLeftOver: 'Custom allocator examples left for practical lab',
-        carryForwardAction: 'Review Big-O analysis next class',
-        classworkStatus: 'GIVEN',
-        notes: 'Students demonstrated strong grasp of iterator category hierarchy.',
-      },
-    });
-
-    await prisma.sessionAuditLog.create({
-      data: {
-        sessionLogId: log.id,
-        changedByUserId: faculty1.id,
-        action: 'CREATE',
-        newState: JSON.stringify(log),
-        reason: 'Initial session log recorded in under 60 seconds',
-      },
-    });
-    console.log('✔ Sample session log & audit trail recorded for DSA in c++');
-  }
-
-  // Also seed one unlogged session > 48h to demonstrate the 48-hour alert escalation!
-  const unloggedOldDate = new Date(Date.now() - 4 * 24 * 60 * 60 * 1000);
-  const unloggedOldDateStr = CalendarEngine.formatDateOnly(unloggedOldDate);
-
-  const escalatedSession = await prisma.scheduledSession.upsert({
-    where: {
-      subjectId_sessionDate_startTime: {
-        subjectId: webSubject.id,
-        sessionDate: new Date(`${unloggedOldDateStr}T00:00:00.000Z`),
-        startTime: '10:00',
-      },
-    },
-    update: {},
-    create: {
-      subjectId: webSubject.id,
-      facultyId: faculty2.id,
-      batchId: batchA.id,
-      campusId: campuses['HI-Tech'].id,
-      sessionDate: new Date(`${unloggedOldDateStr}T00:00:00.000Z`),
-      startTime: '10:00',
-      endTime: '11:30',
-      durationHours: 1.5,
-      status: 'SCHEDULED',
-      hasLog: false,
-    },
-  });
-
-  // Create escalated alert for this session
-  await prisma.alert.upsert({
-    where: {
-      scheduledSessionId_type: {
-        scheduledSessionId: escalatedSession.id,
-        type: 'CAMPUS_MANAGER_ESCALATION',
-      },
-    },
-    update: {},
-    create: {
-      scheduledSessionId: escalatedSession.id,
-      subjectId: webSubject.id,
-      recipientUserId: users['manager.hitech@mirai.edu.in'].id,
-      type: 'CAMPUS_MANAGER_ESCALATION',
-      title: 'ESCALATION: Missing Log > 48h - CS502 Web development',
-      message: 'Class for Web development scheduled on ' + unloggedOldDateStr + ' by Varun Kumar Sharma has not been logged for over 48 hours. Campus manager intervention required.',
-      status: 'SENT',
-      hoursUnlogged: 96.0,
-      scheduledDate: escalatedSession.sessionDate,
-      sentAt: new Date(),
-    },
-  });
-  console.log('✔ Escalated alert created for unlogged Web development session (>48h)');
-
-  console.log('\n🎉 All subject progression, lesson plans, timetables, and demo data seeded successfully!');
+  console.log('✔ Alerts and sample daily logs seeded.');
+  console.log('🎉 Database seeding complete! Ready for local development and testing.');
 }
 
-async function main() {
-  const academicData = await seedCoreAcademicData();
-  await seedSubjectsAndProgress(academicData);
-}
-
-if (process.argv[1] && process.argv[1].endsWith('seed.ts')) {
-  main()
-    .catch((e) => {
-      console.error(e);
-      process.exit(1);
-    })
-    .finally(async () => {
-      await prisma.$disconnect();
-    });
-}
+seedDatabase();

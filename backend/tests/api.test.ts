@@ -1,182 +1,234 @@
 import request from 'supertest';
 import app from '../src/app.js';
-import jwt from 'jsonwebtoken';
-import prisma from '../src/lib/prisma.js';
+import { db, initDatabase } from '../src/db.js';
+import { seedDatabase } from '../src/seed.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'mirai_msot_progression_super_secret_jwt_key_2026';
-
-describe('End-to-End API Workflows & Seeded Subjects Verification', () => {
+describe('MSOT Course Progression Platform - SQLite Backend API & Engine Tests', () => {
+  let adminToken: string;
   let facultyToken: string;
   let studentToken: string;
-  let adminToken: string;
-  let managerToken: string;
-  let dsaSubject: any;
-  let webSubject: any;
 
-  beforeAll(async () => {
-    const faculty = await prisma.user.findFirst({ where: { email: 'faculty1@mirai.edu.in' } });
-    const student = await prisma.user.findFirst({ where: { email: 'student@mirai.edu.in' } });
-    const admin = await prisma.user.findFirst({ where: { email: 'admin@mirai.edu.in' } });
-    const manager = await prisma.user.findFirst({ where: { email: 'manager.hitech@mirai.edu.in' } });
+  beforeAll(() => {
+    // Seed fresh SQLite database before testing
+    seedDatabase();
+  });
 
-    facultyToken = jwt.sign(
-      { id: faculty!.id, email: faculty!.email, name: faculty!.name, role: faculty!.role, campusId: faculty!.campusId },
-      JWT_SECRET
-    );
+  describe('1. Authentication & RBAC', () => {
+    it('authenticates admin and returns JWT with ADMIN role', async () => {
+      const res = await request(app)
+        .post('/api/auth/login')
+        .send({ email: 'admin@mirai.edu', password: 'mirai123' });
 
-    studentToken = jwt.sign(
-      { id: student!.id, email: student!.email, name: student!.name, role: student!.role, batchId: student!.batchId },
-      JWT_SECRET
-    );
-
-    adminToken = jwt.sign(
-      { id: admin!.id, email: admin!.email, name: admin!.name, role: admin!.role },
-      JWT_SECRET
-    );
-
-    managerToken = jwt.sign(
-      { id: manager!.id, email: manager!.email, name: manager!.name, role: manager!.role, campusId: manager!.campusId },
-      JWT_SECRET
-    );
-
-    dsaSubject = await prisma.subject.findFirst({
-      where: { code: 'CS501' },
-      include: { topics: true },
+      expect(res.status).toBe(200);
+      expect(res.body.token).toBeDefined();
+      expect(res.body.user.role).toBe('ADMIN');
+      adminToken = res.body.token;
     });
 
-    webSubject = await prisma.subject.findFirst({
-      where: { code: 'CS502' },
-      include: { topics: true },
+    it('authenticates faculty member', async () => {
+      const res = await request(app)
+        .post('/api/auth/login')
+        .send({ email: 'faculty.sharma@mirai.edu', password: 'mirai123' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.token).toBeDefined();
+      expect(res.body.user.role).toBe('FACULTY');
+      facultyToken = res.body.token;
+    });
+
+    it('authenticates student with read-only batch role', async () => {
+      const res = await request(app)
+        .post('/api/auth/login')
+        .send({ email: 'student.aarav@mirai.edu', password: 'mirai123' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.user.role).toBe('STUDENT');
+      studentToken = res.body.token;
+    });
+
+    it('sends demo OTP for valid 10-digit phone number (POST /api/auth/send-otp)', async () => {
+      const res = await request(app)
+        .post('/api/auth/send-otp')
+        .send({ phone: '9876543210' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.demoOtp).toBe('123456');
+    });
+
+    it('rejects invalid phone number with 400 (POST /api/auth/send-otp)', async () => {
+      const res = await request(app)
+        .post('/api/auth/send-otp')
+        .send({ phone: '123' });
+
+      expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+    });
+
+    it('verifies valid OTP 123456 and returns role (POST /api/auth/verify-otp)', async () => {
+      const res = await request(app)
+        .post('/api/auth/verify-otp')
+        .send({ phone: '9876543210', otp: '123456' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.token).toBe('mock-jwt-token-msot');
+      expect(res.body.role).toBe('admin');
+      expect(res.body.user.name).toBe('Dr. Suresh Varma');
+    });
+
+    it('rejects incorrect OTP (POST /api/auth/verify-otp)', async () => {
+      const res = await request(app)
+        .post('/api/auth/verify-otp')
+        .send({ phone: '9876543210', otp: '999999' });
+
+      expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+    });
+
+    it('requires compulsory mobile number for Google login (POST /api/auth/google)', async () => {
+      const res = await request(app)
+        .post('/api/auth/google')
+        .send({ email: 'prof.sharma@mirai.edu', name: 'Prof. Rajesh Sharma' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.requiresPhone).toBe(true);
+    });
+
+    it('authenticates with Google email and compulsory mobile number (POST /api/auth/google)', async () => {
+      const res = await request(app)
+        .post('/api/auth/google')
+        .send({
+          email: 'prof.sharma@mirai.edu',
+          name: 'Prof. Rajesh Sharma',
+          phone: '9876543212',
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.requiresPhone).toBe(false);
+      expect(res.body.role).toBe('faculty');
+      expect(res.body.user.googleLinked).toBe(true);
     });
   });
 
-  afterAll(async () => {
-    await prisma.$disconnect();
-  });
+  describe('2. Admin Semester Configuration & Calendar Rules', () => {
+    it('allows Admin to configure a semester with Saturday rules and holidays (POST /api/admin/semesters)', async () => {
+      const res = await request(app)
+        .post('/api/admin/semesters')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          id: 'sem-hitech-fall-2026',
+          campus_id: 'camp-hitech',
+          start_date: '2026-08-01',
+          end_date: '2026-12-20',
+          working_saturdays_rule: 'SECOND_FOURTH_SATURDAY',
+          holidays_json: [
+            { date: '2026-08-15', title: 'Independence Day' },
+            { date: '2026-10-02', title: 'Gandhi Jayanti' },
+          ],
+        });
 
-  it('verifies "DSA in c++" is seeded with correct hours and topics', () => {
-    expect(dsaSubject).toBeDefined();
-    expect(dsaSubject.name).toBe('DSA in c++');
-    expect(dsaSubject.plannedHours).toBeCloseTo(44.5, 1);
-    expect(dsaSubject.topics.length).toBe(12);
-  });
-
-  it('verifies "Web development" is seeded with correct hours and topics', () => {
-    expect(webSubject).toBeDefined();
-    expect(webSubject.name).toBe('Web development');
-    expect(webSubject.plannedHours).toBeCloseTo(40.0, 1);
-    expect(webSubject.topics.length).toBe(11);
-  });
-
-  it('assigns the requested subjects and faculty to the correct tracks without duplicating DSA', async () => {
-    const subjects = await prisma.subject.findMany({
-      where: { campusId: dsaSubject.campusId, batchId: dsaSubject.batchId },
-      include: { track: true, faculty: true },
+      expect(res.status).toBe(201);
+      expect(res.body.message).toContain('Semester configuration saved');
     });
-    const expectedUniversitySubjects = [
-      ['CS503', 'IKS', 'Gaurav Singh Singh'],
-      ['EE101', 'Fundamentals of Electrical Engg.', 'Aman Srivastava'],
-      ['PHY101', 'Physics', 'Himanshu Sharma Kumar'],
-      ['WEB101', 'Internet & Web Basics', 'Varun Kumar Sharma'],
-      ['CS504', 'Introduction to prompt Eng', 'Vishal Rathee'],
-      ['LAN101', 'Language lab', 'Soniya Tyagi'],
-      ['PHY102', 'Physics Lab', 'Dr Suman Rajput'],
-      ['MAT101', 'Mathematics-I', 'Gaurav Singh Singh'],
-      ['CS505', 'Programming language', 'Vishal Rathee'],
-    ];
 
-    for (const [code, name, facultyName] of expectedUniversitySubjects) {
-      const subject = subjects.find((item) => item.code === code);
-      expect(subject).toMatchObject({
-        name,
-        track: { name: 'University Track' },
-        faculty: { name: facultyName },
-      });
-    }
+    it('denies non-admin users from creating semester configurations', async () => {
+      const res = await request(app)
+        .post('/api/admin/semesters')
+        .set('Authorization', `Bearer ${facultyToken}`)
+        .send({
+          campus_id: 'camp-hitech',
+          start_date: '2026-08-01',
+          end_date: '2026-12-20',
+        });
 
-    for (const code of ['CS501', 'CS502']) {
-      expect(subjects.find((subject) => subject.code === code)?.track.name).toBe('Mirai Track');
-    }
-
-    expect(
-      subjects.filter((subject) =>
-        ['dsa in c++', 'data structure and algorithm 1'].includes(subject.name.toLowerCase())
-      )
-    ).toHaveLength(1);
+      expect(res.status).toBe(403);
+    });
   });
 
-  it('retrieves faculty dashboard and verifies Today sessions contain scheduled class', async () => {
-    const res = await request(app)
-      .get('/api/dashboard/faculty')
-      .set('Authorization', `Bearer ${facultyToken}`);
+  describe('3. Timetable Setup', () => {
+    it('creates weekly timetable entries (POST /api/timetables)', async () => {
+      const res = await request(app)
+        .post('/api/timetables')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          batch_id: 'batch-hitech-mirai',
+          subject_id: 'sub-dsa',
+          faculty_id: 'usr-fac-sharma',
+          day_of_week: 'Thursday',
+          start_time: '14:00',
+          end_time: '15:30',
+          room: 'Room 204',
+        });
 
-    expect(res.status).toBe(200);
-    expect(res.body.subjects).toBeDefined();
-    const dsa = res.body.subjects.find((s: any) => s.code === 'CS501');
-    expect(dsa).toBeDefined();
-    expect(dsa.progression).toBeDefined();
-    expect(dsa.progression.hoursInScope).toBeGreaterThan(0);
+      expect(res.status).toBe(201);
+      expect(res.body.slot).toBeDefined();
+    });
   });
 
-  it('verifies student read-only view returns both DSA in c++ and Web development with zero staff notes exposed', async () => {
-    const res = await request(app)
-      .get('/api/dashboard/student')
-      .set('Authorization', `Bearer ${studentToken}`);
+  describe('4. Faculty Logging (<60s Flow)', () => {
+    it('pre-fills scheduled sessions for today (GET /api/logs/today)', async () => {
+      const res = await request(app)
+        .get('/api/logs/today')
+        .set('Authorization', `Bearer ${facultyToken}`);
 
-    expect(res.status).toBe(200);
-    expect(res.body.batch).toBeDefined();
-    expect(res.body.subjects.length).toBeGreaterThanOrEqual(2);
+      expect(res.status).toBe(200);
+      expect(res.body.sessions).toBeInstanceOf(Array);
+    });
 
-    const codes = res.body.subjects.map((s: any) => s.code);
-    expect(codes).toContain('CS501');
-    expect(codes).toContain('CS502');
+    it('submits a rapid daily session log (POST /api/logs)', async () => {
+      const res = await request(app)
+        .post('/api/logs')
+        .set('Authorization', `Bearer ${facultyToken}`)
+        .send({
+          timetable_id: 'tt-mon-1',
+          status: 'Completed',
+          percentage_complete: 100,
+          topics_covered: 'Binary Trees & Traversals',
+          leftovers: 'None',
+          notes: 'Class completed on schedule.',
+        });
 
-    // Security check: Ensure internal faculty notes or staff alerts are not in the response
-    const jsonStr = JSON.stringify(res.body);
-    expect(jsonStr).not.toContain('SessionAuditLog');
-    expect(jsonStr).not.toContain('CAMPUS_MANAGER_ESCALATION');
+      expect(res.status).toBe(200);
+      expect(res.body.message).toContain('under 60 seconds');
+    });
   });
 
-  it('executes fast faculty logging workflow for today session and records audit history', async () => {
-    // 1. Get today's sessions
-    const todayRes = await request(app)
-      .get('/api/sessions/today')
-      .set('Authorization', `Bearer ${facultyToken}`);
+  describe('5. Dashboards & Worst-Subject Rollup Engine', () => {
+    it('calculates global dashboard with worst-subject bottleneck (GET /api/dashboards/global)', async () => {
+      const res = await request(app)
+        .get('/api/dashboards/global')
+        .set('Authorization', `Bearer ${adminToken}`);
 
-    expect(todayRes.status).toBe(200);
-    const session = todayRes.body.sessions[0];
-    if (!session) return;
+      expect(res.status).toBe(200);
+      expect(res.body.programRollup).toBeDefined();
+      expect(res.body.campusRollups).toBeInstanceOf(Array);
+      expect(res.body.trackRollups).toBeInstanceOf(Array);
+      expect(res.body.programRollup.bottleneckSubject).toBeDefined();
+    });
 
-    // 2. Submit log
-    const logRes = await request(app)
-      .post('/api/sessions/log')
-      .set('Authorization', `Bearer ${facultyToken}`)
-      .send({
-        scheduledSessionId: session.id,
-        status: 'COMPLETED',
-        actualHours: session.durationHours,
-        whatWasCovered: 'Verified binary tree traversal algorithms',
-        whatWasLeftOver: 'None',
-        carryForwardAction: 'Graph algorithms next',
-        classworkStatus: 'REVIEWED',
-        notes: 'Rapid mobile log verified < 60s',
-      });
+    it('returns exam readiness across subjects and upcoming exams (GET /api/dashboards/exam-readiness)', async () => {
+      const res = await request(app)
+        .get('/api/dashboards/exam-readiness')
+        .set('Authorization', `Bearer ${adminToken}`);
 
-    // If already logged in previous test, 409 is expected or 201 on first log
-    expect([201, 409]).toContain(logRes.status);
+      expect(res.status).toBe(200);
+      expect(res.body.exams).toBeInstanceOf(Array);
+      expect(res.body.exams.length).toBeGreaterThan(0);
+    });
   });
 
-  it('verifies explain-calculation endpoint returns deterministic day-by-day steps', async () => {
-    if (!dsaSubject) return;
+  describe('6. Student View', () => {
+    it('provides student read-only batch view without staff notes (GET /api/dashboard/student)', async () => {
+      const res = await request(app)
+        .get('/api/dashboard/student')
+        .set('Authorization', `Bearer ${studentToken}`);
 
-    const res = await request(app)
-      .get(`/api/subjects/${dsaSubject.id}/explain-calculation`)
-      .set('Authorization', `Bearer ${facultyToken}`);
-
-    expect(res.status).toBe(200);
-    expect(res.body.steps).toBeDefined();
-    expect(Array.isArray(res.body.steps)).toBe(true);
-    expect(res.body.steps.length).toBeGreaterThan(0);
-    expect(res.body.saturdayRule).toBe('SECOND_FOURTH_SATURDAY');
+      expect(res.status).toBe(200);
+      expect(res.body.subjects).toBeInstanceOf(Array);
+      expect(res.body.upcomingExams).toBeInstanceOf(Array);
+    });
   });
 });

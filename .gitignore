@@ -15,14 +15,18 @@ dist-ssr
 
 # Environment variables
 .env
+.env.*
 .env.production
 .env.local
+!.env.example
 
 # Databases & local stores
 *.db
 *.db-journal
 *.sqlite
 *.sqlite3
+*.sqlite-wal
+*.sqlite-shm
 prisma/dev.db
 prisma/dev.db-journal
 

@@ -1,30 +1,55 @@
-import { Router, Response } from 'express';
-import prisma from '../lib/prisma.js';
+import { Router, Request, Response } from 'express';
+import { db } from '../db.js';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth.js';
-import { AlertEngine } from '../services/alertEngine.js';
 
 const router = Router();
 
-// GET /api/alerts
-router.get('/', authenticate, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+/**
+ * GET /api/alerts
+ */
+router.get('/', authenticate, (req: AuthenticatedRequest, res: Response): void => {
   try {
-    const where: any = {};
+    const user = req.user;
+    const userRole = (user?.role || '').toUpperCase();
 
-    if (req.user?.role === 'FACULTY') {
-      where.recipientUserId = req.user.id;
-    } else if (req.user?.role === 'CAMPUS_MANAGER' && req.user.campusId) {
-      where.subject = { campusId: req.user.campusId };
+    let query = `
+      SELECT a.*, s.name as subject_name, s.code as subject_code,
+             u.name as recipient_name, u.email as recipient_email, u.role as recipient_role
+      FROM alerts a
+      LEFT JOIN subjects s ON a.subject_id = s.id
+      LEFT JOIN users u ON a.recipient_user_id = u.id
+      WHERE 1=1
+    `;
+    const params: any[] = [];
+
+    if (userRole === 'FACULTY') {
+      query += ` AND a.recipient_user_id = ?`;
+      params.push(user?.id);
     }
 
-    const alerts = await prisma.alert.findMany({
-      where,
-      include: {
-        subject: true,
-        recipientUser: { select: { id: true, name: true, email: true, role: true } },
-        scheduledSession: true,
+    query += ` ORDER BY a.created_at DESC LIMIT 50`;
+
+    const rawAlerts = db.prepare(query).all(...params) as any[];
+
+    const alerts = rawAlerts.map((a) => ({
+      id: a.id,
+      subjectId: a.subject_id,
+      subject: { id: a.subject_id, code: a.subject_code || '', name: a.subject_name || '' },
+      recipientUserId: a.recipient_user_id,
+      recipientUser: {
+        id: a.recipient_user_id,
+        name: a.recipient_name || 'User',
+        email: a.recipient_email || '',
+        role: a.recipient_role || 'FACULTY',
       },
-      orderBy: { createdAt: 'desc' },
-    });
+      type: a.type,
+      title: a.title,
+      message: a.message,
+      status: a.status,
+      hoursUnlogged: 24,
+      scheduledDate: a.scheduled_date || a.created_at,
+      createdAt: a.created_at,
+    }));
 
     res.json({ alerts });
   } catch (err: any) {
@@ -32,46 +57,14 @@ router.get('/', authenticate, async (req: AuthenticatedRequest, res: Response): 
   }
 });
 
-// POST /api/alerts/scan (Triggers missing log alert scan)
-router.post('/scan', authenticate, async (_req: AuthenticatedRequest, res: Response): Promise<void> => {
-  try {
-    const result = await AlertEngine.scanAndGenerateAlerts();
-    res.json({
-      success: true,
-      message: `Scanned ${result.scannedUnloggedSessions} unlogged sessions. Generated ${result.newAlertsCount} new alerts.`,
-      result,
-    });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// POST /api/alerts/:id/acknowledge
-router.post('/:id/acknowledge', authenticate, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+/**
+ * POST /api/alerts/:id/acknowledge
+ */
+router.post('/:id/acknowledge', authenticate, (req: AuthenticatedRequest, res: Response): void => {
   try {
     const { id } = req.params;
-    const alert = await AlertEngine.acknowledgeAlert(id, req.user!.id);
-    res.json({ success: true, alert });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// GET /api/alerts/delivery-logs
-router.get('/delivery-logs', authenticate, async (_req: AuthenticatedRequest, res: Response): Promise<void> => {
-  try {
-    const logs = await prisma.notificationDeliveryLog.findMany({
-      include: {
-        alert: {
-          include: {
-            subject: true,
-          },
-        },
-      },
-      orderBy: { sentAt: 'desc' },
-      take: 50,
-    });
-    res.json({ deliveryLogs: logs });
+    db.prepare(`UPDATE alerts SET status = 'ACKNOWLEDGED' WHERE id = ?`).run(id);
+    res.json({ success: true, message: 'Alert acknowledged.' });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

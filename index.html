@@ -1,115 +1,496 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#f8f9fc">
-    <meta name="description" content="A clear view of teaching progress, upcoming classes, and exam readiness.">
-    <title>Course Progress | Mirai School of Technology</title>
-    <link rel="stylesheet" href="./style.css">
-    <script src="./app.js" defer></script>
-  </head>
-  <body>
-    <div class="app-shell">
-      <aside class="sidebar" id="sidebar">
-        <a class="brand" href="#" aria-label="Mirai home">
-          <span class="brand-mark">m</span>
-          <span class="brand-copy"><strong>mirai</strong><small>LEARNING PORTAL</small></span>
-        </a>
-        <div class="side-label">WORKSPACE</div>
-        <nav class="side-nav" aria-label="Main navigation">
-          <button class="nav-link active" data-page="overview"><span class="nav-icon">⌂</span>Overview</button>
-          <button class="nav-link" data-page="sessions"><span class="nav-icon">◷</span>Sessions<span class="nav-count">3</span></button>
-          <button class="nav-link" data-page="subjects"><span class="nav-icon">▤</span>Subjects</button>
-          <button class="nav-link" data-page="calendar"><span class="nav-icon">▦</span>Calendar</button>
-          <button class="nav-link" data-page="students"><span class="nav-icon">♙</span>Students</button>
-          <button class="nav-link" data-page="reports"><span class="nav-icon">▥</span>Reports</button>
-        </nav>
-        <div class="side-label setup-label">SETUP</div>
-        <nav class="side-nav" aria-label="Setup navigation">
-          <button class="nav-link" data-page="timetable"><span class="nav-icon">▧</span>Timetable</button>
-          <button class="nav-link" data-page="settings"><span class="nav-icon">⚙</span>Settings</button>
-        </nav>
-        <div class="sidebar-bottom">
-          <div class="help-card">
-            <span class="help-icon">?</span>
-            <strong>Need a hand?</strong>
-            <p>Find quick answers to get you started.</p>
-            <button class="text-button" data-toast="Help center is coming soon.">Visit help center <span>→</span></button>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Course Progression Platform | Mirai School of Technology</title>
+  <meta name="description" content="Academic course progression tracking and early warning system for Mirai School of Technology.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <!-- Chart.js CDN for interactive visual analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- Google Identity Services for Google Login -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- Favicon using official Mirai design mark -->
+  <link rel="icon" type="image/png" href="./assets/mirai-logo.png">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Top Navigation Header -->
+    <header class="topbar">
+      <div class="topbar-inner">
+        <!-- Brand Logo & Identity -->
+        <div class="brand-group">
+          <button class="mobile-toggle-btn" id="mobileMenuBtn" aria-label="Toggle menu">☰</button>
+          <div class="brand-logo" onclick="app.setTab('dashboard')">
+            <img src="./assets/mirai-logo.png" alt="Mirai Design Mark" class="brand-college-logo">
+            <div class="brand-text">
+              <span class="brand-title">MIRAI <span class="brand-accent-text">SCHOOL OF TECH</span></span>
+              <span class="brand-tagline">Course Progression Platform</span>
+            </div>
           </div>
-          <button class="user-card" id="profile-button" aria-label="Profile menu">
-            <span class="avatar">SV</span>
-            <span class="user-copy"><strong>Suresh Varma</strong><small>Program Manager</small></span>
-            <span class="user-more">···</span>
+        </div>
+
+        <!-- Header Controls (Clean & Decluttered) -->
+        <div class="header-controls">
+          <!-- Connection Status Pill (Moved out of prominent view when logged in) -->
+          <div class="status-indicator-pill hide-when-logged-in" id="backendStatusPill" title="Connection mode">
+            <span class="status-dot"></span>
+            <span class="status-text" id="backendStatusText">Checking API...</span>
+          </div>
+
+          <!-- Quick Role Selector (Hidden from navbar when logged in, accessible inside profile menu) -->
+          <div class="role-selector-wrap hide-when-logged-in" id="navRoleSelectorWrap">
+            <label for="roleSelect" class="role-label">VIEW AS:</label>
+            <select id="roleSelect" class="role-select" onchange="app.switchRole(this.value)">
+              <option value="admin">⚡ Admin / Program Manager</option>
+              <option value="campus_manager">🏢 Campus Manager</option>
+              <option value="faculty" selected>👨‍🏫 Faculty Member</option>
+              <option value="student">🎓 Student</option>
+            </select>
+          </div>
+
+          <!-- Quick Log Button (Faculty / Admin only) -->
+          <button class="btn btn-primary btn-quick-log show-when-logged-in" id="quickLogBtn" onclick="app.openQuickLogModal()">
+            <span class="btn-icon">＋</span>
+            <span class="btn-text">Log Class</span>
+          </button>
+
+          <!-- Notifications Alert Bell -->
+          <button class="icon-button notification-btn show-when-logged-in" id="notifBellBtn" onclick="app.toggleNotificationsDrawer()" aria-label="Notifications">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+              <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+            </svg>
+            <span class="badge-count" id="notifCount">2</span>
+          </button>
+
+          <!-- Sign In Trigger (Shown when LOGGED OUT) -->
+          <button class="btn btn-primary btn-sm btn-otp-nav show-when-logged-out" id="headerAuthBtn" onclick="app.openAuthModal()">
+            <span class="btn-icon">📱</span>
+            <span class="btn-text">Sign In</span>
+          </button>
+
+          <!-- User Avatar Profile Chip with Dropdown (Shown when LOGGED IN) -->
+          <div class="user-chip-wrap show-when-logged-in" id="userChipWrap">
+            <div class="user-chip" id="userProfileChip" onclick="app.toggleProfileDropdown(event)">
+              <div class="avatar" id="userAvatar">RS</div>
+              <div class="user-details hide-on-mobile">
+                <span class="user-name" id="userName">Prof. Rajesh Sharma</span>
+                <span class="user-role-label" id="userRoleBadge">Faculty</span>
+              </div>
+              <span class="chip-caret">▾</span>
+            </div>
+
+            <!-- Sleek Uncluttered Profile Dropdown -->
+            <div class="profile-dropdown-menu" id="profileDropdownMenu">
+              <div class="profile-drop-header">
+                <div class="avatar avatar-md" id="profileDropAvatar">RS</div>
+                <div class="profile-drop-info">
+                  <strong id="profileDropName">Prof. Rajesh Sharma</strong>
+                  <span class="profile-drop-phone" id="profileDropPhone">📱 +91 9876543212</span>
+                  <span class="profile-drop-email" id="profileDropEmail">✉️ faculty.sharma@mirai.edu</span>
+                </div>
+              </div>
+
+              <div class="profile-drop-divider"></div>
+
+              <!-- Compact Role Switcher inside Profile Menu (Zero Navbar Clutter) -->
+              <div class="profile-drop-section">
+                <label class="profile-drop-label" for="profileRoleSelect">SWITCH ROLE VIEW:</label>
+                <select id="profileRoleSelect" class="role-select" onchange="app.switchRole(this.value); app.toggleProfileDropdown(false);">
+                  <option value="admin">⚡ Admin / Program Manager</option>
+                  <option value="campus_manager">🏢 Campus Manager</option>
+                  <option value="faculty" selected>👨‍🏫 Faculty Member</option>
+                  <option value="student">🎓 Student</option>
+                </select>
+              </div>
+
+              <div class="profile-drop-divider"></div>
+
+              <button type="button" class="profile-drop-item" onclick="app.openAuthModal(); app.toggleProfileDropdown(false);">
+                <span>📱 Switch Mobile Account</span>
+              </button>
+              <button type="button" class="profile-drop-item text-danger" onclick="app.logout(); app.toggleProfileDropdown(false);">
+                <span>⎋ Sign Out</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Sign Out Button (Shown when LOGGED IN) -->
+          <button class="btn btn-ghost btn-sm btn-logout show-when-logged-in hide-on-mobile" id="logoutBtn" onclick="app.logout()" title="Sign out to Mobile OTP screen">
+            <span>⎋</span>
           </button>
         </div>
-      </aside>
+      </div>
 
-      <main class="main-area">
-        <header class="topbar">
-          <button class="mobile-menu" id="mobile-menu" aria-label="Open navigation">☰</button>
-          <div class="crumb"><span>Workspace</span><span class="crumb-slash">/</span><strong id="crumb-title">Overview</strong></div>
-          <div class="top-actions">
-            <label class="term-select"><span class="sr-only">Choose semester</span><select id="semester-select"><option>Fall semester · 2026</option><option>Spring semester · 2026</option></select></label>
-            <button class="icon-button notification-button" aria-label="Notifications" data-toast="You're all caught up.">♧<i></i></button>
-            <span class="top-avatar">SV</span>
-          </div>
-        </header>
-
-        <div class="page-content">
-          <section class="page-heading">
-            <div>
-              <p class="eyebrow">THURSDAY, OCTOBER 15, 2026 <span class="live-dot"></span> LIVE OVERVIEW</p>
-              <h1 id="page-title">Good morning, Suresh <span class="wave">✳</span></h1>
-              <p class="heading-subtitle" id="page-subtitle">Here’s how your courses are moving this semester.</p>
-            </div>
-            <button class="primary-button" id="log-session-button"><span>＋</span> Log a session</button>
-          </section>
-          <section class="stat-grid" aria-label="Semester summary">
-            <article class="stat-card"><div class="stat-top"><span>Overall coverage</span><span class="stat-symbol purple">◉</span></div><div class="stat-value"><strong id="coverage-value">68%</strong><span class="trend positive">↗ 4.2%</span></div><div class="stat-foot"><span class="mini-track"><i style="width:68%"></i></span><span>of planned syllabus</span></div></article>
-            <article class="stat-card"><div class="stat-top"><span>Teaching hours logged</span><span class="stat-symbol blue">◷</span></div><div class="stat-value"><strong id="hours-value">412</strong><span class="stat-unit">/ 580 hrs</span></div><div class="stat-foot"><span class="trend positive">↗ 12 hrs</span><span>this week</span></div></article>
-            <article class="stat-card"><div class="stat-top"><span>Subjects on track</span><span class="stat-symbol green">✓</span></div><div class="stat-value"><strong id="track-value">5</strong><span class="stat-unit">of 7 subjects</span></div><div class="stat-foot"><span class="status-dot green-dot"></span><span>Most classes are on pace</span></div></article>
-            <article class="stat-card"><div class="stat-top"><span>Next exam</span><span class="stat-symbol amber">▦</span></div><div class="stat-value"><strong class="exam-value">12</strong><span class="stat-unit">days away</span></div><div class="stat-foot"><span class="status-dot amber-dot"></span><span>Mid-sem · Oct 27</span></div></article>
-          </section>
-          <section class="content-grid">
-            <article class="panel subject-panel">
-              <div class="panel-heading"><div><h2>Subject progress</h2><p>Stay on top of every course in your program.</p></div><button class="subtle-button" data-page-link="subjects">All subjects <span>→</span></button></div>
-              <div class="subject-table-wrap"><table class="subject-table"><thead><tr><th>SUBJECT</th><th>PROGRESS</th><th>PACE</th><th>BUFFER</th></tr></thead><tbody id="subject-rows"></tbody></table></div>
-              <button class="mobile-all-link" data-page-link="subjects">View all subjects →</button>
-            </article>
-            <article class="panel week-panel">
-              <div class="panel-heading"><div><h2>This week</h2><p>Your teaching schedule at a glance.</p></div><button class="subtle-button" data-page-link="calendar">Full calendar <span>→</span></button></div>
-              <div class="week-strip" id="week-strip"></div><div class="schedule-list" id="schedule-list"></div>
-            </article>
-          </section>
-          <section class="bottom-grid">
-            <article class="panel alert-panel">
-              <div class="panel-heading"><div class="heading-with-icon"><span class="alert-badge">!</span><div><h2>Needs your attention</h2><p>A little nudge to keep everything on track.</p></div></div><span class="small-count">2 items</span></div>
-              <div class="attention-list">
-                <div class="attention-item"><span class="attention-icon danger-icon">↘</span><div><strong>Database Systems is falling behind</strong><p>Buffer is running low. 3 sessions need to be added.</p></div><button class="arrow-button" data-page-link="subjects" aria-label="View Database Systems">→</button></div>
-                <div class="attention-item"><span class="attention-icon warning-icon">◷</span><div><strong>1 session is waiting for a log</strong><p>Computer Networks · Yesterday at 11:30 AM</p></div><button class="arrow-button" id="attention-log" aria-label="Log overdue session">→</button></div>
-              </div>
-            </article>
-            <article class="panel exam-panel">
-              <div class="panel-heading"><div><h2>Coming up</h2><p>Upcoming exams for your batch.</p></div><button class="subtle-button" data-page-link="calendar">View calendar <span>→</span></button></div>
-              <div class="exam-row"><span class="exam-date"><strong>27</strong><small>OCT</small></span><div><strong>Mid-semester exams</strong><p>All subjects · BTech CSE (AI/ML)</p></div><span class="exam-pill">12 days</span></div>
-              <div class="exam-row"><span class="exam-date"><strong>18</strong><small>NOV</small></span><div><strong>Practical assessments</strong><p>Lab subjects · BTech CSE (AI/ML)</p></div><span class="exam-pill muted-pill">46 days</span></div>
-            </article>
-          </section>
-          <footer class="page-footer"><span>Mirai Learning Portal</span><span>Making every class count.</span></footer>
+      <!-- Navigation Tabs Strip -->
+      <nav class="nav-tabs-strip">
+        <div class="nav-tabs-inner" id="navTabsContainer">
+          <button class="nav-tab active" data-tab="dashboard" onclick="app.setTab('dashboard')">
+            <span class="tab-icon">📊</span>
+            <span>Dashboard</span>
+          </button>
+          <button class="nav-tab" data-tab="subjects" onclick="app.setTab('subjects')">
+            <span class="tab-icon">📚</span>
+            <span>Subjects & Syllabus</span>
+          </button>
+          <button class="nav-tab" data-tab="timetable" onclick="app.setTab('timetable')">
+            <span class="tab-icon">📅</span>
+            <span>Timetable</span>
+          </button>
+          <button class="nav-tab" data-tab="exams" onclick="app.setTab('exams')">
+            <span class="tab-icon">🎯</span>
+            <span>Exam Readiness</span>
+          </button>
+          <button class="nav-tab" data-tab="auditor" onclick="app.setTab('auditor')">
+            <span class="tab-icon">📐</span>
+            <span>Calculation Auditor</span>
+          </button>
         </div>
-      </main>
-    </div>
-    <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <dialog class="session-dialog" id="session-dialog">
-      <form id="session-form">
-        <div class="dialog-heading"><div><span class="eyebrow">QUICK SESSION LOG</span><h2>How did class go?</h2><p>This should only take a moment.</p></div><button type="button" class="dialog-close" id="close-dialog" aria-label="Close">×</button></div>
-        <label class="field-label" for="session-subject">Subject</label><select class="field-input" id="session-subject" required></select>
-        <label class="field-label" for="session-status">Session status</label><select class="field-input" id="session-status"><option value="Completed">Completed</option><option value="In progress">In progress</option><option value="Skipped">Skipped</option><option value="Cancelled">Cancelled</option></select>
-        <div id="completion-wrap" class="completion-wrap"><label class="field-label" for="session-completion">How much did you cover? <span id="completion-label">100%</span></label><input type="range" id="session-completion" min="0" max="100" value="100"></div>
-        <label class="field-label" for="session-notes">Topics or notes <span class="optional-label">Optional</span></label><textarea class="field-input" id="session-notes" rows="3" placeholder="What did you cover today?"></textarea>
-        <button class="primary-button save-button" type="submit">Save session</button>
+      </nav>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content" id="mainAppContainer">
+      <!-- Dynamic Views Injected Here by app.js -->
+      <div id="viewContainer" class="view-container">
+        <!-- Rendered view content -->
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <img src="./assets/mirai-logo.png" alt="Mirai Design Mark" class="footer-logo">
+          <div class="footer-brand-info">
+            <span class="footer-title">Mirai School of Technology</span>
+            <span class="footer-sub">Course Progression Platform • BTech CSE (AI/ML)</span>
+          </div>
+        </div>
+        <div class="footer-meta">
+          Campuses: HI-Tech • Ratnam • RGIB • JUJ
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ================= MODALS & DRAWERS ================= -->
+
+  <!-- Sub-60s Faculty Session Logging Modal -->
+  <div class="modal-overlay" id="sessionLogModal">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <div>
+          <span class="modal-eyebrow">FACULTY LOGGING (<60s)</span>
+          <h2 class="modal-title" id="logModalTitle">Log Daily Class Session</h2>
+        </div>
+        <button class="modal-close-btn" onclick="app.closeModal('sessionLogModal')">×</button>
+      </div>
+
+      <form id="sessionLogForm" onsubmit="app.handleSessionLogSubmit(event)">
+        <input type="hidden" id="logTimetableId" name="timetableId">
+
+        <div class="modal-body">
+          <!-- Session Schedule Banner -->
+          <div class="session-info-banner">
+            <div class="session-badge" id="logSubjectCode">CS301</div>
+            <div>
+              <div class="session-subject-title" id="logSubjectName">Data Structures & Algorithms</div>
+              <div class="session-schedule-meta" id="logScheduleMeta">Monday · 09:00 AM - 10:30 AM · Room 204</div>
+            </div>
+          </div>
+
+          <!-- Expected Topic Guidance -->
+          <div class="expected-topic-box">
+            <div class="box-label">🎯 EXPECTED NEXT SYLLABUS TOPIC</div>
+            <div class="expected-topic-name" id="logExpectedTopic">Loading next scheduled topic...</div>
+            <div class="expected-topic-sub" id="logExpectedTopicUnit">Unit 3: Trees & Graphs • 2.0 planned hours</div>
+          </div>
+
+          <!-- 1-Tap Status Chips -->
+          <div class="form-group">
+            <label class="field-label">Session Delivery Status <span class="req">*</span></label>
+            <div class="status-chip-group" id="statusChipGroup">
+              <button type="button" class="chip chip-status active" data-status="Completed" onclick="app.setStatusChip('Completed')">
+                <span class="chip-dot dot-green"></span> Completed
+              </button>
+              <button type="button" class="chip chip-status" data-status="In Progress" onclick="app.setStatusChip('In Progress')">
+                <span class="chip-dot dot-blue"></span> In Progress
+              </button>
+              <button type="button" class="chip chip-status" data-status="Skipped" onclick="app.setStatusChip('Skipped')">
+                <span class="chip-dot dot-slate"></span> Skipped
+              </button>
+              <button type="button" class="chip chip-status" data-status="Merged" onclick="app.setStatusChip('Merged')">
+                <span class="chip-dot dot-purple"></span> Merged
+              </button>
+              <button type="button" class="chip chip-status" data-status="Cancelled" onclick="app.setStatusChip('Cancelled')">
+                <span class="chip-dot dot-red"></span> Cancelled
+              </button>
+            </div>
+            <input type="hidden" id="logStatusInput" name="status" value="Completed">
+          </div>
+
+          <!-- Completion Slider (Active for In-Progress) -->
+          <div class="form-group" id="completionSliderGroup">
+            <div class="slider-header">
+              <label class="field-label">Topic Coverage Percentage</label>
+              <span class="slider-val-badge" id="completionValBadge">100%</span>
+            </div>
+            <input type="range" id="completionSlider" min="10" max="100" step="5" value="100" class="custom-slider" oninput="app.updateSliderValue(this.value)">
+            <div class="quick-preset-chips">
+              <button type="button" class="preset-chip" onclick="app.updateSliderValue(25)">25%</button>
+              <button type="button" class="preset-chip" onclick="app.updateSliderValue(50)">50%</button>
+              <button type="button" class="preset-chip" onclick="app.updateSliderValue(75)">75%</button>
+              <button type="button" class="preset-chip active" onclick="app.updateSliderValue(100)">100% Full</button>
+            </div>
+          </div>
+
+          <!-- Classwork & Homework Tracking -->
+          <div class="form-group">
+            <label class="field-label">Classwork / Assignment Status</label>
+            <div class="cw-chip-group" id="cwChipGroup">
+              <button type="button" class="chip chip-cw active" data-cw="None" onclick="app.setCwChip('None')">None</button>
+              <button type="button" class="chip chip-cw" data-cw="Given" onclick="app.setCwChip('Given')">Given</button>
+              <button type="button" class="chip chip-cw" data-cw="Collected" onclick="app.setCwChip('Collected')">Collected</button>
+              <button type="button" class="chip chip-cw" data-cw="Reviewed" onclick="app.setCwChip('Reviewed')">Reviewed</button>
+            </div>
+            <input type="hidden" id="logCwInput" name="classwork" value="None">
+          </div>
+
+          <!-- Topics Covered & Notes -->
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="field-label" for="logTopicsCovered">Topics Covered Today</label>
+              <input type="text" id="logTopicsCovered" class="form-input" placeholder="e.g. Binary Search Trees & Rotations">
+            </div>
+            <div class="form-group">
+              <label class="field-label" for="logLeftovers">Topics Left Over / Carry Forward</label>
+              <input type="text" id="logLeftovers" class="form-input" placeholder="e.g. Balanced AVL insertion cases">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="field-label" for="logNotes">Faculty Reflection / Notes</label>
+            <textarea id="logNotes" class="form-textarea" rows="2" placeholder="Optional notes for campus managers or teaching adjustments..."></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="app.closeModal('sessionLogModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="logSubmitBtn">
+            <span>✓ Complete & Recalculate</span>
+          </button>
+        </div>
       </form>
-    </dialog>
-  </body>
+    </div>
+  </div>
+
+  <!-- Explain Calculation Audit Modal -->
+  <div class="modal-overlay" id="explainModal">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <div>
+          <span class="modal-eyebrow">MATHEMATICAL AUDIT TRAIL</span>
+          <h2 class="modal-title" id="explainSubjectTitle">Calculation Audit: Subject</h2>
+        </div>
+        <button class="modal-close-btn" onclick="app.closeModal('explainModal')">×</button>
+      </div>
+      <div class="modal-body" id="explainModalBody">
+        <!-- Injected by app.js -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="app.closeModal('explainModal')">Close Inspector</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Drawer -->
+  <div class="drawer-overlay" id="notifDrawer" onclick="app.toggleNotificationsDrawer(false)">
+    <div class="drawer-card" onclick="event.stopPropagation()">
+      <div class="drawer-header">
+        <h3>Institutional Alerts</h3>
+        <button class="modal-close-btn" onclick="app.toggleNotificationsDrawer(false)">×</button>
+      </div>
+      <div class="drawer-body" id="notifListContainer">
+        <!-- Injected by app.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- ================= MOBILE NUMBER + OTP AUTHENTICATION MODULE ================= -->
+  <div class="auth-modal-overlay" id="authModal">
+    <div class="auth-card">
+      <!-- Card Brand Header -->
+      <div class="auth-card-header">
+        <div class="auth-brand-badge">
+          <img src="./assets/mirai-logo.png" alt="Mirai School of Technology Logo Mark" class="auth-brand-logo">
+          <div class="auth-brand-text">
+            <span class="auth-brand-title">MIRAI SCHOOL OF TECHNOLOGY</span>
+            <span class="auth-brand-sub">Course Progression Platform</span>
+          </div>
+        </div>
+        <button type="button" class="auth-close-btn" id="authCloseBtn" onclick="app.closeAuthModal()" title="Close / Explore as Demo Guest">×</button>
+      </div>
+
+      <div class="auth-card-body">
+        <!-- STEP 1: MOBILE NUMBER INPUT -->
+        <div class="auth-step active" id="authStepPhone">
+          <div class="auth-step-heading">
+            <h2>Sign in with Mobile OTP</h2>
+            <p>Enter your 10-digit registered mobile number to receive an instant authentication passcode.</p>
+          </div>
+
+          <form id="phoneForm" onsubmit="event.preventDefault(); app.sendOtp();">
+            <div class="form-group">
+              <label class="form-label" for="phoneInput">Mobile Number</label>
+              <div class="phone-input-wrap">
+                <div class="country-code-pill">
+                  <span class="flag-icon">🇮🇳</span>
+                  <select id="countryCodeSelect" class="country-select" aria-label="Country Code">
+                    <option value="+91" selected>+91</option>
+                  </select>
+                </div>
+                <input 
+                  type="tel" 
+                  id="phoneInput" 
+                  class="phone-input" 
+                  placeholder="98765 43210" 
+                  maxlength="10" 
+                  inputmode="numeric" 
+                  pattern="[0-9]{10}"
+                  autocomplete="tel"
+                  required
+                >
+              </div>
+              <span class="form-hint">Enter your standard 10-digit mobile number</span>
+            </div>
+
+            <!-- Demo Role Fast-Fill Pills -->
+            <div class="demo-numbers-box">
+              <span class="demo-box-label">⚡ 1-Tap Demo Test Numbers:</span>
+              <div class="demo-pills-grid">
+                <button type="button" class="demo-pill" onclick="app.fillDemoPhone('9876543210', 'Admin')">
+                  <span class="pill-role">Admin</span>
+                  <span class="pill-phone">9876543210</span>
+                </button>
+                <button type="button" class="demo-pill" onclick="app.fillDemoPhone('9876543211', 'Campus Mgr')">
+                  <span class="pill-role">Campus Mgr</span>
+                  <span class="pill-phone">9876543211</span>
+                </button>
+                <button type="button" class="demo-pill" onclick="app.fillDemoPhone('9876543212', 'Faculty')">
+                  <span class="pill-role">Faculty</span>
+                  <span class="pill-phone">9876543212</span>
+                </button>
+                <button type="button" class="demo-pill" onclick="app.fillDemoPhone('9876543213', 'Student')">
+                  <span class="pill-role">Student</span>
+                  <span class="pill-phone">9876543213</span>
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-auth-submit" id="btnGetOtp">
+              <span class="btn-text">Get OTP (Compulsory Mobile Step)</span>
+              <span class="btn-arrow">→</span>
+            </button>
+
+            <!-- Optional Email Sign-In via Google OAuth -->
+            <div class="auth-divider">
+              <span>OR (OPTIONAL EMAIL LOGIN)</span>
+            </div>
+
+            <div class="google-auth-box">
+              <button type="button" class="btn-google-custom" id="customGoogleBtn" onclick="app.signInWithGoogle()">
+                <svg width="18" height="18" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                  <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
+                  <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                  <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                </svg>
+                <span>Continue with Google (Optional Email)</span>
+              </button>
+
+              <!-- Optional GSI Button Slot -->
+              <div id="googleGsiButton" class="google-gsi-slot"></div>
+
+              <!-- Linked Google Email Badge -->
+              <div class="google-linked-status" id="googleLinkedStatus" style="display: none;">
+                <span class="status-icon">✓</span>
+                <span class="status-text">Google email linked: <strong id="googleLinkedEmailText"></strong></span>
+                <button type="button" class="btn-unlink-google" onclick="app.unlinkGoogle()" title="Unlink Google Account">✕</button>
+              </div>
+
+              <p class="google-hint-text">
+                <span class="badge-compulsory">NOTE:</span> Mobile number OTP is <strong>compulsory</strong>. Google email sign-in is <strong>optional</strong>.
+              </p>
+            </div>
+          </form>
+        </div>
+
+        <!-- STEP 2: OTP VERIFICATION -->
+        <div class="auth-step" id="authStepOtp" style="display: none;">
+          <div class="auth-step-heading">
+            <h2>Enter 6-Digit OTP</h2>
+            <div class="phone-display-row">
+              <span>Code sent to <strong>+91 <span id="displayOtpPhone">98765 43210</span></strong></span>
+              <button type="button" class="btn-link-edit" onclick="app.editPhoneStep()">✏️ Change</button>
+            </div>
+          </div>
+
+          <!-- Evaluator / Hackathon Demo Callout Toast Banner -->
+          <div class="demo-otp-callout" id="demoOtpBanner">
+            <div class="demo-callout-icon">💡</div>
+            <div class="demo-callout-content">
+              <strong>Demo Mode:</strong>
+              <span>Your verification OTP is <code class="otp-highlight">123456</code></span>
+            </div>
+            <button type="button" class="btn-quick-fill-otp" onclick="app.autoFillDemoOtp()">Auto-Fill</button>
+          </div>
+
+          <form id="otpForm" onsubmit="event.preventDefault(); app.verifyOtp();">
+            <div class="form-group">
+              <label class="form-label" for="otpBox0">Verification Code</label>
+              <!-- 6 Digit Boxes Grid -->
+              <div class="otp-digits-container" id="otpDigitsContainer">
+                <input type="text" maxlength="1" inputmode="numeric" class="otp-box" id="otpBox0" data-index="0" autocomplete="off">
+                <input type="text" maxlength="1" inputmode="numeric" class="otp-box" id="otpBox1" data-index="1" autocomplete="off">
+                <input type="text" maxlength="1" inputmode="numeric" class="otp-box" id="otpBox2" data-index="2" autocomplete="off">
+                <input type="text" maxlength="1" inputmode="numeric" class="otp-box" id="otpBox3" data-index="3" autocomplete="off">
+                <input type="text" maxlength="1" inputmode="numeric" class="otp-box" id="otpBox4" data-index="4" autocomplete="off">
+                <input type="text" maxlength="1" inputmode="numeric" class="otp-box" id="otpBox5" data-index="5" autocomplete="off">
+              </div>
+            </div>
+
+            <div class="otp-resend-row">
+              <span id="resendCountdownText">Resend available in <strong id="resendTimer">30s</strong></span>
+              <button type="button" class="btn-resend-link" id="btnResendOtp" disabled onclick="app.resendOtp()">Resend Code</button>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-auth-submit" id="btnVerifyOtp">
+              <span class="btn-text">Verify & Login</span>
+              <span class="btn-check">✓</span>
+            </button>
+
+            <div class="auth-back-link">
+              <button type="button" class="btn-link" onclick="app.editPhoneStep()">← Back to Mobile Number</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="auth-card-footer">
+        <span>🔒 Secure MSOT Academic Single Sign-On • Zero SMS Charges</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Engine Script -->
+  <script type="module" src="./app.js"></script>
+</body>
 </html>
