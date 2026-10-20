@@ -231,4 +231,163 @@ describe('MSOT Course Progression Platform - SQLite Backend API & Engine Tests',
       expect(res.body.upcomingExams).toBeInstanceOf(Array);
     });
   });
+
+  describe('7. Timetable Collision Prevention & Overlap Reporting', () => {
+    it('prevents overlapping faculty session and returns HTTP 409 conflict', async () => {
+      // tt-mon-1 is on Monday 09:00 - 10:30 with usr-fac-sharma
+      const res = await request(app)
+        .post('/api/timetables')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          batch_id: 'batch-hitech-mirai',
+          subject_id: 'sub-mirai-web',
+          faculty_id: 'usr-fac-sharma', // Same faculty
+          day_of_week: 'Monday',        // Same day
+          start_time: '09:30',          // Overlaps 09:00 - 10:30
+          end_time: '11:00',
+          room: 'Room 999',
+        });
+
+      expect(res.status).toBe(409);
+      expect(res.body.error).toContain('collision detected');
+      expect(res.body.collisions[0].type).toBe('FACULTY_COLLISION');
+    });
+
+    it('prevents overlapping room booking and returns HTTP 409 conflict', async () => {
+      // tt-mon-1 is on Monday 09:00 - 10:30 in Lab 101
+      const res = await request(app)
+        .post('/api/timetables')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          batch_id: 'batch-hitech-aktu',
+          subject_id: 'sub-aktu-physics',
+          faculty_id: 'usr-fac-himanshu',
+          day_of_week: 'Monday',
+          start_time: '10:00', // Overlaps
+          end_time: '11:30',
+          room: 'Lab 101',     // Same room
+        });
+
+      expect(res.status).toBe(409);
+      expect(res.body.collisions.some((c) => c.type === 'ROOM_COLLISION')).toBe(true);
+    });
+  });
+
+  describe('8. Course Alternatives Configuration & Audit Trail', () => {
+    it('switches active course in an alternative group (POST /api/subjects/configure-alternatives)', async () => {
+      const res = await request(app)
+        .post('/api/subjects/configure-alternatives')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          activateSubjectId: 'sub-aktu-chemistry',
+          deactivateSubjectId: 'sub-aktu-physics',
+          batchId: 'batch-hitech-aktu',
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+
+      // Verify in subjects listing
+      const subRes = await request(app)
+        .get('/api/subjects?batchId=batch-hitech-aktu&includeInactive=true')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      const chem = subRes.body.subjects.find((s) => s.id === 'sub-aktu-chemistry');
+      const phys = subRes.body.subjects.find((s) => s.id === 'sub-aktu-physics');
+      expect(chem.isActiveForBatch).toBe(true);
+      expect(phys.isActiveForBatch).toBe(false);
+
+      // Reset back for subsequent test consistency
+      await request(app)
+        .post('/api/subjects/configure-alternatives')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          activateSubjectId: 'sub-aktu-physics',
+          deactivateSubjectId: 'sub-aktu-chemistry',
+          batchId: 'batch-hitech-aktu',
+        });
+    });
+  });
+
+  describe('9. Pedagogical Lesson-Plan Architecture & Version History', () => {
+    it('retrieves detailed lesson plan for a topic (GET /api/subjects/topics/:id/lesson-plan)', async () => {
+      const topicRes = await request(app)
+        .get('/api/subjects?batchId=batch-hitech-aktu')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      const subWithTopics = topicRes.body.subjects.find((s) => s.topics && s.topics.length > 0);
+      expect(subWithTopics).toBeDefined();
+      const firstTopic = subWithTopics.topics[0];
+      const res = await request(app)
+        .get(`/api/subjects/topics/${firstTopic.id}/lesson-plan`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.topic).toBeDefined();
+      expect(res.body.topic.learningOutcomes).toBeDefined();
+      expect(res.body.topic.diagnosticQuestion).toBeDefined();
+    });
+
+    it('updates lesson plan, archives version, and supports admin review', async () => {
+      const topicRes = await request(app)
+        .get('/api/subjects?batchId=batch-hitech-aktu')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      const subWithTopics = topicRes.body.subjects.find((s) => s.topics && s.topics.length > 0);
+      expect(subWithTopics).toBeDefined();
+      const firstTopic = subWithTopics.topics[0];
+
+      // Update lesson plan
+      const updateRes = await request(app)
+        .put(`/api/subjects/topics/${firstTopic.id}/lesson-plan`)
+        .set('Authorization', `Bearer ${facultyToken}`)
+        .send({
+          concept_explanation: 'Updated advanced conceptual explanation with worked example.',
+          teaching_method: 'Flipped Classroom & Lab Simulation',
+          lesson_plan_status: 'SUBMITTED',
+        });
+
+      expect(updateRes.status).toBe(200);
+      expect(updateRes.body.topic.version).toBeGreaterThan(firstTopic.version);
+
+      // Admin review
+      const reviewRes = await request(app)
+        .post(`/api/subjects/topics/${firstTopic.id}/review`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          status: 'APPROVED',
+          reviewer_notes: 'Comprehensive lesson plan conforming to AKTU 2026-27 learning outcomes.',
+        });
+
+      expect(reviewRes.status).toBe(200);
+      expect(reviewRes.body.message).toContain('APPROVED');
+    });
+  });
+
+  describe('10. Missed-Log Alerts & 48-Hour Escalation', () => {
+    it('scans for unlogged sessions and generates alerts (POST /api/alerts/generate-missed-log-alerts)', async () => {
+      const res = await request(app)
+        .post('/api/alerts/generate-missed-log-alerts')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+    });
+
+    it('acknowledges an alert (POST /api/alerts/:id/acknowledge)', async () => {
+      const alertList = await request(app)
+        .get('/api/alerts')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      if (alertList.body.alerts.length > 0) {
+        const targetId = alertList.body.alerts[0].id;
+        const ackRes = await request(app)
+          .post(`/api/alerts/${targetId}/acknowledge`)
+          .set('Authorization', `Bearer ${adminToken}`);
+
+        expect(ackRes.status).toBe(200);
+        expect(ackRes.body.success).toBe(true);
+      }
+    });
+  });
 });

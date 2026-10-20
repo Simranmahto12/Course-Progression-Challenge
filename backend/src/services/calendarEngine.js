@@ -1,5 +1,8 @@
+import { db } from '../db.js';
+
 const WEEKDAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 export class CalendarEngine {
+
     /**
      * Determine whether a Saturday is an eligible working day based on the configured rule.
      * - ALL_SATURDAYS: Every Saturday is a working day.
@@ -199,5 +202,100 @@ export class CalendarEngine {
         const month = String(d.getMonth() + 1).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
+    }
+
+    /**
+     * Walk the calendar and update topic planned dates, writing changes to date_movement_audit
+     */
+    static recalculateAndAuditSubjectDates(subjectId, reason = 'Calendar or Timetable recalculation', actor = 'SYSTEM_CALENDAR_ENGINE') {
+        const sub = db.prepare(`
+          SELECT s.*, b.campus_id, b.track_id 
+          FROM subjects s 
+          JOIN batches b ON s.batch_id = b.id 
+          WHERE s.id = ?
+        `).get(subjectId);
+        if (!sub) return null;
+
+        const semester = db.prepare(`
+          SELECT * FROM semesters WHERE campus_id = ? ORDER BY start_date DESC LIMIT 1
+        `).get(sub.campus_id);
+        if (!semester) return null;
+
+        const holidays = semester.holidays_json ? JSON.parse(semester.holidays_json).map((h) => ({
+          date: h.date,
+          title: h.title,
+          type: 'PUBLIC_HOLIDAY',
+          isTeachingSuspended: true,
+        })) : [];
+
+        const dayMap = { Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6 };
+        const rawSlots = db.prepare(`
+          SELECT day_of_week, start_time, end_time FROM timetables WHERE subject_id = ?
+        `).all(subjectId);
+
+        const timetableSlots = rawSlots.map((slot) => {
+          const [sh, sm] = slot.start_time.split(':').map(Number);
+          const [eh, em] = slot.end_time.split(':').map(Number);
+          return {
+            weekday: dayMap[slot.day_of_week] !== undefined ? dayMap[slot.day_of_week] : 1,
+            durationHours: Math.round(((eh * 60 + em) - (sh * 60 + sm)) / 60 * 100) / 100,
+          };
+        });
+
+        const topics = db.prepare(`
+          SELECT id, topic_name as name, planned_hours as plannedHours, sequence, status, planned_date
+          FROM topics WHERE subject_id = ? ORDER BY sequence ASC
+        `).all(subjectId);
+
+        const cancelledLogs = db.prepare(`
+          SELECT dl.session_date, tt.start_time, tt.end_time
+          FROM daily_logs dl
+          JOIN timetables tt ON dl.timetable_id = tt.id
+          WHERE tt.subject_id = ? AND dl.status = 'Cancelled'
+        `).all(subjectId).map((l) => {
+          const [sh, sm] = l.start_time.split(':').map(Number);
+          const [eh, em] = l.end_time.split(':').map(Number);
+          return {
+            sessionDate: l.session_date,
+            durationHours: Math.round(((eh * 60 + em) - (sh * 60 + sm)) / 60 * 100) / 100,
+          };
+        });
+
+        const walkResult = this.calculatePlannedTopicDates(
+          semester.start_date,
+          semester.end_date,
+          semester.working_saturdays_rule || 'SECOND_FOURTH_SATURDAY',
+          timetableSlots,
+          topics,
+          holidays,
+          sub.campus_id,
+          sub.batch_id,
+          cancelledLogs
+        );
+
+        const auditEntries = [];
+        for (const [topicId, newDate] of walkResult.topicPlannedDates.entries()) {
+          const orig = topics.find((t) => t.id === topicId);
+          if (orig && orig.planned_date !== newDate) {
+            db.prepare(`UPDATE topics SET planned_date = ? WHERE id = ?`).run(newDate, topicId);
+            const auditId = `dma-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+            db.prepare(`
+              INSERT INTO date_movement_audit (id, topic_id, old_date, new_date, reason, triggered_by, created_at)
+              VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+            `).run(auditId, topicId, orig.planned_date || 'Unscheduled', newDate, reason, actor);
+            auditEntries.push({
+              topicId,
+              topicName: orig.name,
+              oldDate: orig.planned_date,
+              newDate,
+              reason,
+            });
+          }
+        }
+
+        return {
+          walkResult,
+          auditEntries,
+        };
     }
 }

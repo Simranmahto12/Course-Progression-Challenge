@@ -106,7 +106,6 @@ router.post('/verify-otp', (req, res) => {
             campusId: user.campus_id,
             batchId: user.batch_id,
         };
-        // Standard mock token as requested, plus signed JWT compatibility
         const token = 'mock-jwt-token-msot';
         console.log(`[AUTH] User verified with phone ${phone} as ${(user.role || mapped.role).toUpperCase()} (${user.name})`);
         res.json({

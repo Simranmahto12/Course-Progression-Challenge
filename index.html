@@ -45,7 +45,7 @@
               <div class="login-feature-icon">🏛️</div>
               <div class="login-feature-text">
                 <strong>Multi-Campus Rollup Intelligence</strong>
-                <span>Unified governance across HI-Tech, Ratnam, RGIB, and JUJ campuses.</span>
+                <span>Unified governance across HI-Tech, Rathinam, and Jagannath University campuses.</span>
               </div>
             </div>
             <div class="login-feature-item">
@@ -92,6 +92,26 @@
               <div class="auth-step-heading">
                 <h2>Sign In to Portal</h2>
                 <p>Mobile number authentication is <strong>compulsory</strong>. Enter your 10-digit number to receive your passcode.</p>
+              </div>
+
+              <!-- Campus Selection at First Screen -->
+              <div class="login-campus-select-box">
+                <label class="login-campus-label">🏛️ SELECT CAMPUS WORKSPACE:</label>
+                <div class="login-campus-buttons">
+                  <button type="button" class="login-campus-btn" data-campus="camp-rathinam" onclick="app.setCampus('camp-rathinam')">
+                    <span class="campus-dot"></span>
+                    <span>Rathinam</span>
+                  </button>
+                  <button type="button" class="login-campus-btn active" data-campus="camp-hitech" onclick="app.setCampus('camp-hitech')">
+                    <span class="campus-dot"></span>
+                    <span>HI-Tech</span>
+                    <span class="campus-tag-badge">Default</span>
+                  </button>
+                  <button type="button" class="login-campus-btn" data-campus="camp-jagannath" onclick="app.setCampus('camp-jagannath')">
+                    <span class="campus-dot"></span>
+                    <span>Jagannath Univ</span>
+                  </button>
+                </div>
               </div>
 
               <form id="phoneForm" onsubmit="event.preventDefault(); app.sendOtp();">
@@ -244,7 +264,7 @@
         <!-- Brand Logo & Identity -->
         <div class="brand-group">
           <button class="mobile-toggle-btn" id="mobileMenuBtn" aria-label="Toggle menu">☰</button>
-          <div class="brand-logo" onclick="app.setTab('dashboard')">
+          <div class="brand-logo" onclick="app.setTab('subjects')">
             <img src="./assets/mirai-logo.png" alt="Mirai Design Mark" class="brand-college-logo">
             <div class="brand-text">
               <span class="brand-title">MIRAI <span class="brand-accent-text">SCHOOL OF TECH</span></span>
@@ -252,6 +272,7 @@
             </div>
           </div>
         </div>
+
 
         <!-- Header Controls (Clean & Decluttered) -->
         <div class="header-controls">
@@ -285,6 +306,16 @@
               <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
             </svg>
             <span class="badge-count" id="notifCount">2</span>
+          </button>
+
+          <!-- Dark Mode Navigation Option near Bell Icon -->
+          <button class="icon-button dark-mode-toggle" id="darkModeToggle" onclick="app.toggleDarkMode()" aria-label="Toggle dark mode" title="Toggle dark mode">
+            <span id="darkModeIcon">🌙</span>
+          </button>
+
+          <!-- Google / Outlook Calendar Sync Button -->
+          <button class="icon-button calendar-sync-toggle show-when-logged-in" id="calendarSyncBtn" onclick="app.openCalendarSyncModal()" aria-label="Calendar Sync" title="Sync Exams & Classes to Google/Outlook Calendar">
+            <span>📅</span>
           </button>
 
 
@@ -341,24 +372,65 @@
         </div>
       </div>
 
-      <!-- Navigation Tabs Strip -->
+      <!-- Campus Selector Strip (At top of workspace) -->
+      <div class="campus-bar-strip">
+        <div class="campus-bar-inner">
+          <div class="campus-bar-label">
+            <span class="campus-icon">🏛️</span>
+            <span>CAMPUS WORKSPACE:</span>
+          </div>
+          <div class="campus-bar-pills" id="headerCampusPills">
+            <button type="button" class="campus-bar-pill" data-campus="camp-rathinam" onclick="app.setCampus('camp-rathinam')">
+              <span class="pill-dot"></span>
+              <span class="pill-text">Rathinam</span>
+            </button>
+            <button type="button" class="campus-bar-pill active" data-campus="camp-hitech" onclick="app.setCampus('camp-hitech')">
+              <span class="pill-dot"></span>
+              <span class="pill-text">HI-Tech</span>
+              <span class="pill-active-badge">Active</span>
+            </button>
+            <button type="button" class="campus-bar-pill" data-campus="camp-jagannath" onclick="app.setCampus('camp-jagannath')">
+              <span class="pill-dot"></span>
+              <span class="pill-text">Jagannath University</span>
+            </button>
+          </div>
+          <div class="campus-indicator-tag hide-on-mobile" id="selectedCampusNotice">
+            <span>Viewing: <strong>HI-Tech Campus</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs Strip (HI-Tech Workspace Areas - Feature 6 Dashboard excluded per brief) -->
       <nav class="nav-tabs-strip">
         <div class="nav-tabs-inner" id="navTabsContainer">
-          <button class="nav-tab active" data-tab="dashboard" onclick="app.setTab('dashboard')">
-            <span class="tab-icon">📊</span>
-            <span>Dashboard</span>
-          </button>
-          <button class="nav-tab" data-tab="subjects" onclick="app.setTab('subjects')">
+          <button class="nav-tab active" data-tab="subjects" onclick="app.setTab('subjects')">
             <span class="tab-icon">📚</span>
-            <span>Subjects & Syllabus</span>
+            <span>Subjects & Lesson Plans</span>
           </button>
           <button class="nav-tab" data-tab="timetable" onclick="app.setTab('timetable')">
             <span class="tab-icon">📅</span>
             <span>Timetable</span>
           </button>
+          <button class="nav-tab" data-tab="calendar" onclick="app.setTab('calendar')">
+            <span class="tab-icon">📆</span>
+            <span>Calendar & Semester</span>
+          </button>
           <button class="nav-tab" data-tab="exams" onclick="app.setTab('exams')">
             <span class="tab-icon">🎯</span>
             <span>Exam Readiness</span>
+          </button>
+          <button class="nav-tab" data-tab="student" onclick="app.setTab('student')">
+            <span class="tab-icon">🎓</span>
+            <span>Student View</span>
+          </button>
+          <button class="nav-tab" data-tab="alerts" onclick="app.setTab('alerts')">
+            <span class="tab-icon">🔔</span>
+            <span>Alerts</span>
+            <span class="nav-tab-badge" id="alertsNavBadge">2</span>
+          </button>
+          <button class="nav-tab" data-tab="reports" onclick="app.setTab('reports')">
+            <span class="tab-icon">📄</span>
+            <span>Reports & Imports</span>
           </button>
           <button class="nav-tab" data-tab="auditor" onclick="app.setTab('auditor')">
             <span class="tab-icon">📐</span>
@@ -366,6 +438,7 @@
           </button>
         </div>
       </nav>
+
     </header>
 
     <!-- Main Content Area -->
@@ -387,7 +460,7 @@
           </div>
         </div>
         <div class="footer-meta">
-          Campuses: HI-Tech • Ratnam • RGIB • JUJ
+          Campuses: Rathinam • HI-Tech • Jagannath University
         </div>
       </div>
     </footer>
@@ -410,11 +483,15 @@
         <input type="hidden" id="logTimetableId" name="timetableId">
 
         <div class="modal-body">
+          <!-- Inbound WhatsApp / Voice AI Drafts Waiting for Review -->
+          <div id="pendingAiDraftsContainer" style="display: none; margin-bottom: 1rem;"></div>
+
           <!-- Session Schedule Banner -->
           <div class="session-info-banner">
-            <div class="session-badge" id="logSubjectCode">CS301</div>
+            <div class="session-badge">📚 Class Session</div>
+            <span id="logSubjectCode" style="display: none;"></span>
             <div>
-              <div class="session-subject-title" id="logSubjectName">Data Structures & Algorithms</div>
+              <div class="session-subject-title" id="logSubjectName">Data Structure and Algorithm 1</div>
               <div class="session-schedule-meta" id="logScheduleMeta">Monday · 09:00 AM - 10:30 AM · Room 204</div>
             </div>
           </div>
@@ -424,6 +501,23 @@
             <div class="box-label">🎯 EXPECTED NEXT SYLLABUS TOPIC</div>
             <div class="expected-topic-name" id="logExpectedTopic">Loading next scheduled topic...</div>
             <div class="expected-topic-sub" id="logExpectedTopicUnit">Unit 3: Trees & Graphs • 2.0 planned hours</div>
+          </div>
+
+          <!-- Voice / Quick Text Proposer (<5s Auto-Fill) -->
+          <div class="voice-parser-card">
+            <div class="voice-parser-head">
+              <span class="voice-parser-icon">✨</span>
+              <span class="voice-parser-title">Voice / Natural Language Quick-Fill (&lt;5s)</span>
+            </div>
+            <div class="voice-parser-body">
+              <div class="voice-input-row">
+                <input type="text" id="voiceLogInput" class="form-input" placeholder='Type or speak: "Covered AVL tree rotations today, 80% done, remaining deletions next class. Homework given."' />
+                <button type="button" class="btn btn-primary btn-sm btn-parse-log" onclick="app.parseQuickLogText()">
+                  <span>⚡ Auto-Fill</span>
+                </button>
+              </div>
+              <div class="voice-parser-hint">Intelligently parses status, %, covered topics, carry-forward leftovers & assignments.</div>
+            </div>
           </div>
 
           <!-- 1-Tap Status Chips -->
@@ -523,7 +617,492 @@
     </div>
   </div>
 
-  <!-- Notification Drawer -->
+  <!-- Add Holiday Modal -->
+  <div class="modal-overlay" id="holidayModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <span class="modal-eyebrow">ACADEMIC CALENDAR</span>
+          <h2 class="modal-title">Add Institutional Holiday / Event</h2>
+        </div>
+        <button class="modal-close-btn" onclick="app.closeModal('holidayModal')">×</button>
+      </div>
+      <form onsubmit="event.preventDefault(); app.saveHoliday();">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="field-label" for="holidayTitle">Holiday / Event Title <span class="req">*</span></label>
+            <input type="text" id="holidayTitle" class="form-input" placeholder="e.g. Founder's Day or Dussehra" required>
+          </div>
+          <div class="form-group">
+            <label class="field-label" for="holidayDate">Holiday Date <span class="req">*</span></label>
+            <input type="date" id="holidayDate" class="form-input" required value="2026-10-25">
+          </div>
+          <div class="form-group">
+            <label class="field-checkbox-label">
+              <input type="checkbox" id="holidaySuspendsTeaching" checked>
+              <span>Suspends Scheduled Teaching (Recalculates Available Teaching Hours)</span>
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="app.closeModal('holidayModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary"><span>✓ Save & Recalculate</span></button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Assign Faculty Modal (For unassigned / AKTU courses) -->
+  <div class="modal-overlay" id="assignFacultyModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <span class="modal-eyebrow">FACULTY ALLOCATION</span>
+          <h2 class="modal-title">Assign Faculty to Subject</h2>
+        </div>
+        <button class="modal-close-btn" onclick="app.closeModal('assignFacultyModal')">×</button>
+      </div>
+      <form onsubmit="event.preventDefault(); app.saveFacultyAssignment();">
+        <input type="hidden" id="assignSubjectId">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="field-label">Subject</label>
+            <div id="assignSubjectTitle" style="font-weight: 700; color: var(--color-navy); padding: 0.5rem; background: var(--color-surface-subtle); border-radius: var(--radius-sm);">
+              Subject Name
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="field-label" for="assignFacultySelect">Select Verified Faculty Member <span class="req">*</span></label>
+            <select id="assignFacultySelect" class="form-input" required>
+              <option value="usr-fac-sharma">Prof. Rajesh Sharma (faculty.sharma@mirai.edu)</option>
+              <option value="usr-fac-gupta">Dr. Ananya Gupta (faculty.gupta@mirai.edu)</option>
+            </select>
+          </div>
+          <p style="font-size: 0.8rem; color: var(--color-text-secondary); margin: 0.5rem 0 0;">
+            Note: Per academic governance rules, faculty visible in screenshots are not auto-mapped until confirmed by Admin or Campus Manager.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="app.closeModal('assignFacultyModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary"><span>✓ Confirm Assignment</span></button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- College-Level Pedagogical Lesson Plan Editor Modal -->
+  <div class="modal-overlay" id="lessonPlanModal">
+    <div class="modal-card modal-lg" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
+      <div class="modal-header">
+        <div>
+          <span class="modal-eyebrow" id="lpSourceReference">AKTU SYLLABUS 2026-27 AUDIT REF</span>
+          <h2 class="modal-title" id="lpModalTitle">Lesson Plan: Topic Name</h2>
+          <div id="lpDraftBanner" style="margin-top: 0.35rem;">
+            <span class="badge badge-warning" id="lpStatusBadge">DRAFT - REQUIRES FACULTY/ADMIN REVIEW</span>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="app.closeModal('lessonPlanModal')">×</button>
+      </div>
+      <form id="lessonPlanForm" onsubmit="event.preventDefault(); app.saveLessonPlan();">
+        <input type="hidden" id="lpTopicId">
+        <div class="modal-body" style="display: flex; flex-direction: column; gap: 1rem;">
+          <!-- Course & Unit Context Strip -->
+          <div style="background: var(--color-surface-subtle); padding: 0.75rem 1rem; border-radius: var(--radius-sm); border-left: 4px solid var(--color-accent); font-size: 0.85rem;">
+            <div id="lpSubjectContext">Course Context</div>
+            <div id="lpUnitContext" style="font-weight: 700; color: var(--color-navy); margin-top: 0.2rem;">Unit Information</div>
+          </div>
+
+          <!-- Section 1: Pedagogical Outcomes & Diagnostic -->
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="field-label" for="lpLearningOutcomes">Measurable Learning Outcomes (Bloom's Taxonomy / KL) <span class="req">*</span></label>
+              <textarea id="lpLearningOutcomes" class="form-textarea" rows="2" placeholder="e.g. CO1: Analyze asymptotic complexity... (KL: K3)"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="field-label" for="lpDiagnosticQuestion">Diagnostic Question (Pre-Class Readiness)</label>
+              <textarea id="lpDiagnosticQuestion" class="form-textarea" rows="2" placeholder="Question asked to test student prerequisite readiness before starting topic..."></textarea>
+            </div>
+          </div>
+
+          <!-- Section 2: Core Concept & Worked Example -->
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="field-label" for="lpConceptExplanation">Concept Explanation / Key Ideas <span class="req">*</span></label>
+              <textarea id="lpConceptExplanation" class="form-textarea" rows="3" placeholder="Key conceptual exposition and theoretical framing..."></textarea>
+            </div>
+            <div class="form-group">
+              <label class="field-label" for="lpWorkedExample">Worked Example / Live Demonstration</label>
+              <textarea id="lpWorkedExample" class="form-textarea" rows="3" placeholder="Step-by-step worked problem, algorithm trace, or board demonstration..."></textarea>
+            </div>
+          </div>
+
+          <!-- Section 3: Guided Practice & Independent Application -->
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="field-label" for="lpGuidedPractice">Guided In-Class Practice</label>
+              <textarea id="lpGuidedPractice" class="form-textarea" rows="2" placeholder="Activity done by students in class with instructor scaffolding..."></textarea>
+            </div>
+            <div class="form-group">
+              <label class="field-label" for="lpIndependentApplication">Independent Application / Homework</label>
+              <textarea id="lpIndependentApplication" class="form-textarea" rows="2" placeholder="Homework problem, programming challenge, or research extension..."></textarea>
+            </div>
+          </div>
+
+          <!-- Section 4: Teaching Method, Equipment & Inclusive Options -->
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label class="field-label" for="lpTeachingMethod">Teaching Method</label>
+              <select id="lpTeachingMethod" class="form-input">
+                <option value="Interactive Lecture & Board Trace">Interactive Lecture & Board Trace</option>
+                <option value="Live Coding & Debugging Studio">Live Coding & Debugging Studio</option>
+                <option value="Simulation & Virtual Lab">Simulation & Virtual Lab</option>
+                <option value="Flipped Classroom & Case Discussion">Flipped Classroom & Case Discussion</option>
+                <option value="Hands-on Workshop / Studio">Hands-on Workshop / Studio</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="field-label" for="lpEquipmentSafety">Equipment / Safety Notes</label>
+              <input type="text" id="lpEquipmentSafety" class="form-input" placeholder="e.g. GCC/Code::Blocks, Multimeter, Eye Protection">
+            </div>
+            <div class="form-group">
+              <label class="field-label" for="lpInclusiveOptions">Inclusive Learning Scaffolding</label>
+              <input type="text" id="lpInclusiveOptions" class="form-input" placeholder="Multi-modal aids, peer pairings, advanced challenges">
+            </div>
+          </div>
+
+          <!-- Section 5: Formative Check & Assignment Evidence -->
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="field-label" for="lpFormativeCheck">Formative Check (Exit Ticket / Quick Quiz)</label>
+              <input type="text" id="lpFormativeCheck" class="form-input" placeholder="2-minute quick check question at the end of class">
+            </div>
+            <div class="form-group">
+              <label class="field-label" for="lpApprovedExamScope">Approved Exam Scope Flag</label>
+              <select id="lpApprovedExamScope" class="form-input">
+                <option value="MID_TERM,FINAL">Mid-Term & Final Examination</option>
+                <option value="MID_TERM">Mid-Term Only</option>
+                <option value="FINAL">Final Examination Only</option>
+                <option value="AUDIT">Audit / Non-Exam Evaluation</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Section 6: Version History Strip -->
+          <div style="border-top: 1px solid var(--color-border); padding-top: 0.75rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <strong style="font-size: 0.88rem; color: var(--color-navy);">📜 Lesson Plan Version History & Reviewer Audit</strong>
+              <span id="lpCurrentVersionBadge" class="badge badge-secondary">v1</span>
+            </div>
+            <div id="lpVersionHistoryList" style="max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.78rem;">
+              <!-- Injected by app.js -->
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+          <button type="button" class="btn btn-secondary" onclick="app.closeModal('lessonPlanModal')">Close</button>
+          <div style="display: flex; gap: 0.5rem;">
+            <!-- Admin Review Controls -->
+            <button type="button" class="btn btn-danger btn-sm" id="btnRequestLpRevision" style="display: none;" onclick="app.reviewLessonPlan('NEEDS_REVISION')">
+              <span>Request Revision</span>
+            </button>
+            <button type="button" class="btn btn-primary btn-sm" id="btnApproveLp" style="display: none; background: #059669; border-color: #047857;" onclick="app.reviewLessonPlan('APPROVED')">
+              <span>✓ Approve Lesson Plan</span>
+            </button>
+            <!-- Faculty Save Button -->
+            <button type="submit" class="btn btn-primary" id="btnSaveLessonPlan">
+              <span>💾 Save & Submit for Review</span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Course Alternatives Switcher Modal -->
+  <div class="modal-overlay" id="alternativesConfigModal">
+    <div class="modal-card modal-lg" style="max-width: 800px;">
+      <div class="modal-header">
+        <div>
+          <span class="modal-eyebrow">AKTU SCHEME (2026-27) CURRICULUM CONFIGURATION</span>
+          <h2 class="modal-title">Configure Course Alternatives</h2>
+          <p style="font-size: 0.82rem; color: var(--color-text-secondary); margin-top: 0.2rem;">
+            AKTU First Semester pairs courses into alternative groups. Configure which course is active for this batch without activating both simultaneously.
+          </p>
+        </div>
+        <button class="modal-close-btn" onclick="app.closeModal('alternativesConfigModal')">×</button>
+      </div>
+      <div class="modal-body" id="alternativesModalBody" style="display: flex; flex-direction: column; gap: 1rem; max-height: 65vh; overflow-y: auto;">
+        <!-- Injected by app.js -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="app.closeModal('alternativesConfigModal')">Close Alternatives Manager</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Timetable Slot Modal with Collision Reporting -->
+  <div class="modal-overlay" id="addTimetableSlotModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <span class="modal-eyebrow">SCHEDULE MANAGEMENT</span>
+          <h2 class="modal-title">Add Weekly Timetable Slot</h2>
+        </div>
+        <button class="modal-close-btn" onclick="app.closeModal('addTimetableSlotModal')">×</button>
+      </div>
+      <form onsubmit="event.preventDefault(); app.saveTimetableSlot();">
+        <div class="modal-body">
+          <div id="timetableConflictBanner" class="alert-banner warning" style="display: none; margin-bottom: 1rem;">
+            <div>
+              <strong id="conflictBannerTitle">Timetable Collision Detected</strong>
+              <p id="conflictBannerMsg" style="font-size: 0.8rem; margin-top: 0.2rem;"></p>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="field-label" for="ttBatchSelect">Target Batch <span class="req">*</span></label>
+            <select id="ttBatchSelect" class="form-input" required>
+              <option value="batch-hitech-mirai">HI-Tech · BTech CSE (AI/ML) · Mirai Track</option>
+              <option value="batch-hitech-aktu">HI-Tech · BTech CSE (AI/ML) · AKTU Track</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="field-label" for="ttSubjectSelect">Subject / Course <span class="req">*</span></label>
+            <select id="ttSubjectSelect" class="form-input" required>
+              <!-- Injected by app.js -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="field-label" for="ttFacultySelect">Assigned Faculty <span class="req">*</span></label>
+            <select id="ttFacultySelect" class="form-input" required>
+              <option value="usr-fac-sharma">Vishal Rathee</option>
+              <option value="usr-fac-gupta">Aman Srivastava</option>
+              <option value="usr-fac-himanshu">Himanshu Sharma Kumar</option>
+              <option value="usr-fac-soniya">Soniya tyagi</option>
+              <option value="usr-fac-suman">Dr Suman Rajput</option>
+              <option value="usr-fac-gaurav">Gaurav Singh Singh</option>
+              <option value="usr-fac-zakir">Zakir Husain Husain</option>
+            </select>
+          </div>
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label class="field-label" for="ttDaySelect">Day of Week <span class="req">*</span></label>
+              <select id="ttDaySelect" class="form-input" required>
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="field-label" for="ttStartTime">Start Time <span class="req">*</span></label>
+              <input type="time" id="ttStartTime" class="form-input" required value="09:00">
+            </div>
+            <div class="form-group">
+              <label class="field-label" for="ttEndTime">End Time <span class="req">*</span></label>
+              <input type="time" id="ttEndTime" class="form-input" required value="10:30">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="field-label" for="ttRoom">Room / Laboratory</label>
+            <input type="text" id="ttRoom" class="form-input" value="Room 101" placeholder="e.g. Lab 101, Physics Lab">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="app.closeModal('addTimetableSlotModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary"><span>✓ Check Conflicts & Save</span></button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Date Movement Audit Trail Modal -->
+  <div class="modal-overlay" id="dateAuditModal">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <div>
+          <span class="modal-eyebrow">AUTOMATIC CALENDAR ENGINE</span>
+          <h2 class="modal-title">Planned Date Movement Audit Trail</h2>
+          <p style="font-size: 0.82rem; color: var(--color-text-secondary); margin-top: 0.2rem;">
+            Full historical audit explaining why topic dates were rescheduled (holidays, working Saturdays, cancelled sessions).
+          </p>
+        </div>
+        <button class="modal-close-btn" onclick="app.closeModal('dateAuditModal')">×</button>
+      </div>
+      <div class="modal-body" id="dateAuditModalBody" style="max-height: 60vh; overflow-y: auto;">
+        <!-- Injected by app.js -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="app.closeModal('dateAuditModal')">Close Audit Inspector</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alert Delivery Channels Configuration Modal -->
+  <div class="modal-overlay" id="alertConfigModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <span class="modal-eyebrow">ALERT DISPATCH ENGINE</span>
+          <h2 class="modal-title">Configure Alert Delivery Channels</h2>
+        </div>
+        <button class="modal-close-btn" onclick="app.closeModal('alertConfigModal')">×</button>
+      </div>
+      <form onsubmit="event.preventDefault(); app.saveAlertConfig();">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="field-checkbox-label">
+              <input type="checkbox" id="cfgInApp" checked>
+              <span>In-App Notifications (Notification bell & drawer)</span>
+            </label>
+          </div>
+          <div class="form-group">
+            <label class="field-checkbox-label">
+              <input type="checkbox" id="cfgEmail" checked>
+              <span>Email Dispatch (Automated faculty email reminders)</span>
+            </label>
+          </div>
+          <div class="form-group">
+            <label class="field-checkbox-label">
+              <input type="checkbox" id="cfgWebhook">
+              <span>SMS / WhatsApp Webhook Dispatch</span>
+            </label>
+          </div>
+          <div class="form-group">
+            <label class="field-label" for="cfgWebhookUrl">Webhook Endpoint URL</label>
+            <input type="url" id="cfgWebhookUrl" class="form-input" value="https://api.mirai.edu/webhooks/sms-alerts">
+          </div>
+          <div class="form-group">
+            <label class="field-label" for="cfgEscalationHours">Manager Escalation Threshold (Hours)</label>
+            <input type="number" id="cfgEscalationHours" class="form-input" value="48" min="12" max="120">
+            <span style="font-size: 0.75rem; color: var(--color-text-muted);">Unlogged sessions are escalated to Campus Manager after this duration.</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="app.closeModal('alertConfigModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary"><span>✓ Save Configuration</span></button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Google & Outlook Calendar Sync Modal -->
+  <div class="modal-overlay" id="calendarSyncModal">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <div>
+          <span class="modal-eyebrow">INTEGRATIONS & SCHEDULE SYNC</span>
+          <h2 class="modal-title">Sync Exams & Classes with External Calendar</h2>
+          <p style="font-size: 0.82rem; color: var(--color-text-secondary); margin-top: 0.2rem;">
+            Opt-in two-way synchronization with Google Calendar & Microsoft Outlook. Idempotent hash ensures zero duplicate events.
+          </p>
+        </div>
+        <button class="modal-close-btn" onclick="app.closeModal('calendarSyncModal')">×</button>
+      </div>
+      <div class="modal-body" id="calendarSyncModalBody">
+        <!-- Injected dynamically by app.js -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="app.closeModal('calendarSyncModal')">Close</button>
+        <button type="button" class="btn btn-primary" onclick="app.triggerCalendarSync()"><span>🔄 Sync Now</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Visiting Faculty Honorarium Policy Modal (Admin only) -->
+  <div class="modal-overlay" id="honorariumPolicyModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <span class="modal-eyebrow">ACADEMIC ADMINISTRATION</span>
+          <h2 class="modal-title">Configure Visiting Faculty Rate Policy</h2>
+          <p style="font-size: 0.82rem; color: var(--color-text-secondary); margin-top: 0.2rem;">
+            Rates must be explicitly configured by an authorized administrator (rates are never invented).
+          </p>
+        </div>
+        <button class="modal-close-btn" onclick="app.closeModal('honorariumPolicyModal')">×</button>
+      </div>
+      <form onsubmit="event.preventDefault(); app.saveHonorariumPolicy();">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="field-label" for="polCampusSelect">Campus</label>
+            <select id="polCampusSelect" class="form-input">
+              <option value="camp-hitech" selected>HI-Tech</option>
+              <option value="camp-rathinam">Rathinam</option>
+              <option value="camp-jagannath">Jagannath University</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="field-label" for="polHourlyRate">Honorarium Rate per Lecture Hour (INR) <span class="req">*</span></label>
+            <input type="number" id="polHourlyRate" class="form-input" value="2500" min="500" max="20000" step="100" required>
+            <span style="font-size: 0.75rem; color: var(--color-text-muted);">Standard compensation per 60-minute contact hour.</span>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="field-label" for="polConveyance">Conveyance Allowance (₹)</label>
+              <input type="number" id="polConveyance" class="form-input" value="1000" min="0" step="100">
+            </div>
+            <div class="form-group">
+              <label class="field-label" for="polMaxHours">Max Monthly Hours Cap</label>
+              <input type="number" id="polMaxHours" class="form-input" value="40" min="10" max="100">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="app.closeModal('honorariumPolicyModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary"><span>✓ Save & Apply Policy</span></button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Source Session Logs Inspector Modal (Honorarium Audit Trail) -->
+  <div class="modal-overlay" id="sourceLogsModal">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <div>
+          <span class="modal-eyebrow">HONORARIUM 100% AUDIT TRAIL</span>
+          <h2 class="modal-title" id="sourceLogsModalTitle">Verified Source Session Logs</h2>
+          <p style="font-size: 0.82rem; color: var(--color-text-secondary); margin-top: 0.2rem;">
+            Every rupee in the honorarium report is traced back to these recorded faculty session logs.
+          </p>
+        </div>
+        <button class="modal-close-btn" onclick="app.closeModal('sourceLogsModal')">×</button>
+      </div>
+      <div class="modal-body" id="sourceLogsModalBody" style="max-height: 60vh; overflow-y: auto;">
+        <!-- Injected dynamically by app.js -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="app.closeModal('sourceLogsModal')">Close Audit Inspector</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Google Sheets Export Setup Guide Modal -->
+  <div class="modal-overlay" id="googleSheetsModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <span class="modal-eyebrow">GOOGLE WORKSPACE INTEGRATION</span>
+          <h2 class="modal-title">Google Sheets Export Configuration</h2>
+        </div>
+        <button class="modal-close-btn" onclick="app.closeModal('googleSheetsModal')">×</button>
+      </div>
+      <div class="modal-body" id="googleSheetsModalBody">
+        <!-- Injected dynamically by app.js -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="app.closeModal('googleSheetsModal')">Close</button>
+        <a id="sheetsDirectDownloadBtn" class="btn btn-primary" href="#" download>
+          <span>📥 Download Direct CSV File</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
   <div class="drawer-overlay" id="notifDrawer" onclick="app.toggleNotificationsDrawer(false)">
     <div class="drawer-card" onclick="event.stopPropagation()">
       <div class="drawer-header">

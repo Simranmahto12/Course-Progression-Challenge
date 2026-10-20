@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { db } from '../db.js';
 import { authenticate, requireRoles } from '../middleware/auth.js';
 import { CalculationEngine } from '../services/calculationEngine.js';
+import { CalendarEngine } from '../services/calendarEngine.js';
 const router = Router();
 /**
  * POST /api/admin/semesters
@@ -26,18 +27,39 @@ router.post('/semesters', authenticate, requireRoles(['ADMIN']), (req, res) => {
         working_saturdays_rule = excluded.working_saturdays_rule,
         holidays_json = excluded.holidays_json
     `).run(id, campus_id, start_date, end_date, working_saturdays_rule, holidaysStr);
-        res.status(201).json({
-            message: 'Semester configuration saved successfully.',
-            semester: {
-                id,
-                campus_id,
-                name,
-                start_date,
-                end_date,
-                working_saturdays_rule,
-                holidays_json: JSON.parse(holidaysStr),
-            },
-        });
+
+    // Automatically recalculate topic dates for campus subjects and audit movements
+    const campusSubjects = db.prepare(`
+      SELECT s.id FROM subjects s
+      JOIN batches b ON s.batch_id = b.id
+      WHERE b.campus_id = ?
+    `).all(campus_id);
+
+    let auditedMoves = 0;
+    for (const sub of campusSubjects) {
+      const res = CalendarEngine.recalculateAndAuditSubjectDates(
+        sub.id,
+        `Semester academic calendar or holiday update (${name || id})`,
+        req.user?.name || req.user?.email || 'Admin'
+      );
+      if (res?.auditEntries) {
+        auditedMoves += res.auditEntries.length;
+      }
+    }
+
+    res.status(201).json({
+      message: 'Semester configuration saved successfully.',
+      auditedDateMovementsCount: auditedMoves,
+      semester: {
+        id,
+        campus_id,
+        name,
+        start_date,
+        end_date,
+        working_saturdays_rule,
+        holidays_json: JSON.parse(holidaysStr),
+      },
+    });
     }
     catch (err) {
         res.status(500).json({ error: err.message || 'Failed to save semester.' });

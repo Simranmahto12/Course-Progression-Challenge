@@ -5,26 +5,27 @@
  */
 
 const API_BASE = (typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http'))
-  ? `${window.location.origin}/api`
-  : 'http://localhost:5001/api';
+  ? (window.location.port && window.location.port !== '3000'
+      ? `${window.location.protocol}//${window.location.hostname || '127.0.0.1'}:3000/api`
+      : `${window.location.origin}/api`)
+  : 'http://localhost:3000/api';
 
 // Initial Mock & Demo Data Store
 const INITIAL_DATA = {
   campuses: [
-    { id: 'camp-hitech', name: 'HI-Tech', city: 'Hyderabad' },
-    { id: 'camp-ratnam', name: 'Ratnam', city: 'Nellore' },
-    { id: 'camp-rgib', name: 'RGIB', city: 'Bengaluru' },
-    { id: 'camp-juj', name: 'JUJ', city: 'Jaipur' },
+    { id: 'camp-rathinam', name: 'Rathinam', city: 'Coimbatore', isConfigured: false },
+    { id: 'camp-hitech', name: 'HI-Tech', city: 'Hyderabad', isConfigured: true },
+    { id: 'camp-jagannath', name: 'Jagannath University', city: 'Jaipur', isConfigured: false },
   ],
   tracks: [
     { id: 'track-mirai', name: 'Mirai Track', description: 'Industry-integrated AI/ML curriculum' },
-    { id: 'track-univ', name: 'University Track', description: 'Core foundational university syllabus' },
+    { id: 'track-aktu', name: 'AKTU Track', description: 'Core foundational university syllabus' },
   ],
   batches: [
-    { id: 'batch-hitech-mirai', campusId: 'camp-hitech', trackId: 'track-mirai', name: 'HI-Tech AI/ML 2026 Batch A' },
-    { id: 'batch-ratnam-mirai', campusId: 'camp-ratnam', trackId: 'track-mirai', name: 'Ratnam AI/ML 2026 Batch A' },
-    { id: 'batch-rgib-mirai', campusId: 'camp-rgib', trackId: 'track-mirai', name: 'RGIB AI/ML 2026 Batch A' },
-    { id: 'batch-juj-mirai', campusId: 'camp-juj', trackId: 'track-mirai', name: 'JUJ AI/ML 2026 Batch A' },
+    { id: 'batch-hitech-mirai', campusId: 'camp-hitech', trackId: 'track-mirai', name: 'HI-Tech · BTech CSE (AI/ML) · Mirai Track' },
+    { id: 'batch-hitech-aktu', campusId: 'camp-hitech', trackId: 'track-aktu', name: 'HI-Tech · BTech CSE (AI/ML) · AKTU Track' },
+    { id: 'batch-rathinam', campusId: 'camp-rathinam', trackId: 'track-mirai', name: 'Rathinam · BTech CSE' },
+    { id: 'batch-jagannath', campusId: 'camp-jagannath', trackId: 'track-mirai', name: 'Jagannath Univ · BTech CSE' },
   ],
   users: {
     admin: {
@@ -46,10 +47,10 @@ const INITIAL_DATA = {
     },
     faculty: {
       id: 'usr-fac-sharma',
-      name: 'Prof. Rajesh Sharma',
+      name: 'Vishal Rathee',
       email: 'faculty.sharma@mirai.edu',
       role: 'FACULTY',
-      initials: 'RS',
+      initials: 'VR',
       campusId: 'camp-hitech',
       campusName: 'HI-Tech Campus',
     },
@@ -94,190 +95,345 @@ const INITIAL_DATA = {
     },
   ],
   subjects: [
+    // ----------------------------------------------------
+    // HI-TECH · MIRAI TRACK SUBJECTS (3 SUBJECTS)
+    // ----------------------------------------------------
     {
       id: 'sub-dsa',
       code: 'CS301',
-      name: 'Data Structures & Algorithms',
+      name: 'DSA in C++',
       campusId: 'camp-hitech',
       campusName: 'HI-Tech',
+      trackId: 'track-mirai',
       trackName: 'Mirai Track',
       batchId: 'batch-hitech-mirai',
       facultyId: 'usr-fac-sharma',
-      facultyName: 'Prof. Rajesh Sharma',
+      facultyName: 'Vishal Rathee',
       targetFinishDate: '2026-12-05',
-      color: '#7b70e1',
+      color: '#6366f1',
+      recordLabel: null,
+      needsAdminReview: false,
       topics: [
-        { id: 'top-dsa-1', unit: 'Unit 1', sequence: 1, name: 'Asymptotic Notation & Time Complexity', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-dsa-2', unit: 'Unit 1', sequence: 2, name: 'Arrays & Dynamic Memory Allocation', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-dsa-3', unit: 'Unit 1', sequence: 3, name: 'Singly & Doubly Linked Lists', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-dsa-4', unit: 'Unit 2', sequence: 4, name: 'Stacks, Queues & Circular Queues', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-dsa-5', unit: 'Unit 2', sequence: 5, name: 'Binary Trees & Traversals', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-dsa-6', unit: 'Unit 2', sequence: 6, name: 'Binary Search Trees (BST)', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-dsa-7', unit: 'Unit 3', sequence: 7, name: 'AVL Trees & Rotations', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'FINAL' },
-        { id: 'top-dsa-8', unit: 'Unit 3', sequence: 8, name: 'Heaps & Priority Queues', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'FINAL' },
-        { id: 'top-dsa-9', unit: 'Unit 3', sequence: 9, name: 'Graph Representations & BFS/DFS', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'FINAL' },
-        { id: 'top-dsa-10', unit: 'Unit 4', sequence: 10, name: 'Dijkstra Shortest Path Algorithm', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'FINAL' },
-        { id: 'top-dsa-11', unit: 'Unit 4', sequence: 11, name: 'Minimum Spanning Trees (Kruskal/Prim)', plannedHours: 2.0, status: 'IN_PROGRESS', percentageComplete: 50, examScope: 'FINAL' },
-        { id: 'top-dsa-12', unit: 'Unit 4', sequence: 12, name: 'Dynamic Programming: Memoization', plannedHours: 2.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL' },
-        { id: 'top-dsa-13', unit: 'Unit 4', sequence: 13, name: 'Knapsack & LCS', plannedHours: 2.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL' },
+        { id: 'top-dsa-1', unit: 'Unit 1: Fundamentals & Complexity', sequence: 1, name: 'Asymptotic Analysis & Big-O Notation', plannedHours: 4.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-08-08' },
+        { id: 'top-dsa-2', unit: 'Unit 1: Fundamentals & Complexity', sequence: 2, name: 'Pointers, Dynamic Arrays & Vectors', plannedHours: 4.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-08-18' },
+        { id: 'top-dsa-3', unit: 'Unit 2: Linear Structures', sequence: 3, name: 'Singly, Doubly & Circular Linked Lists', plannedHours: 5.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-08-28' },
+        { id: 'top-dsa-4', unit: 'Unit 2: Linear Structures', sequence: 4, name: 'Stacks, Queues & Monotonic Stacks', plannedHours: 4.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-09-08' },
+        { id: 'top-dsa-5', unit: 'Unit 3: Trees & Traversals', sequence: 5, name: 'Binary Trees, DFS & BFS Traversals', plannedHours: 5.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-09-18' },
+        { id: 'top-dsa-6', unit: 'Unit 3: Trees & Traversals', sequence: 6, name: 'Binary Search Trees (BST) & Operations', plannedHours: 4.0, status: 'IN_PROGRESS', percentageComplete: 60, examScope: 'MID_TERM,FINAL', plannedDate: '2026-09-28' },
+        { id: 'top-dsa-7', unit: 'Unit 3: Trees & Traversals', sequence: 7, name: 'AVL Trees & Self-Balancing Rotations', plannedHours: 4.0, status: 'PENDING', percentageComplete: 0, examScope: 'MID_TERM,FINAL', plannedDate: '2026-10-08' },
+        { id: 'top-dsa-8', unit: 'Unit 4: Heaps & Graphs', sequence: 8, name: 'Binary Heaps & Priority Queues', plannedHours: 4.0, status: 'PENDING', percentageComplete: 0, examScope: 'MID_TERM,FINAL', plannedDate: '2026-10-18' },
+        { id: 'top-dsa-9', unit: 'Unit 4: Heaps & Graphs', sequence: 9, name: 'Graph Representations, BFS & DFS', plannedHours: 5.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL', plannedDate: '2026-11-05' },
+        { id: 'top-dsa-10', unit: 'Unit 4: Heaps & Graphs', sequence: 10, name: 'Dijkstra & Shortest Path Algorithms', plannedHours: 4.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL', plannedDate: '2026-11-15' },
+        { id: 'top-dsa-11', unit: 'Unit 5: Dynamic Programming', sequence: 11, name: 'Memoization, Tabulation & Knapsack', plannedHours: 5.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL', plannedDate: '2026-11-25' },
       ],
     },
     {
-      id: 'sub-dbms',
+      id: 'sub-mirai-web',
       code: 'CS302',
-      name: 'Database Systems',
+      name: 'Web Development',
       campusId: 'camp-hitech',
       campusName: 'HI-Tech',
+      trackId: 'track-mirai',
       trackName: 'Mirai Track',
       batchId: 'batch-hitech-mirai',
       facultyId: 'usr-fac-gupta',
-      facultyName: 'Dr. Ananya Gupta',
-      targetFinishDate: '2026-11-28', // Earlier target + slower pace = DANGER (demonstrates worst-subject bottleneck)
-      color: '#e7a956',
+      facultyName: 'Aman Srivastava',
+      targetFinishDate: '2026-12-08',
+      color: '#06b6d4',
+      recordLabel: null,
+      needsAdminReview: false,
       topics: [
-        { id: 'top-db-1', unit: 'Unit 1', sequence: 1, name: 'Relational Model & Relational Algebra', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-db-2', unit: 'Unit 1', sequence: 2, name: 'Entity-Relationship (ER) Modeling', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-db-3', unit: 'Unit 1', sequence: 3, name: 'Advanced SQL & Nested Queries', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-db-4', unit: 'Unit 2', sequence: 4, name: 'Functional Dependencies & 1NF/2NF', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-db-5', unit: 'Unit 2', sequence: 5, name: '3NF and BCNF Normalization', plannedHours: 2.0, status: 'IN_PROGRESS', percentageComplete: 30, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-db-6', unit: 'Unit 2', sequence: 6, name: 'Transaction Properties & ACID Rules', plannedHours: 2.0, status: 'PENDING', percentageComplete: 0, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-db-7', unit: 'Unit 3', sequence: 7, name: 'Concurrency Control & Locking Protocols', plannedHours: 2.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL' },
-        { id: 'top-db-8', unit: 'Unit 3', sequence: 8, name: 'Deadlock Detection & Recovery', plannedHours: 2.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL' },
-        { id: 'top-db-9', unit: 'Unit 3', sequence: 9, name: 'B+ Tree Indexing in Relational Engines', plannedHours: 2.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL' },
-        { id: 'top-db-10', unit: 'Unit 4', sequence: 10, name: 'Query Optimization & Cost Estimation', plannedHours: 2.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL' },
-        { id: 'top-db-11', unit: 'Unit 4', sequence: 11, name: 'Crash Recovery & Write-Ahead Logging', plannedHours: 2.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL' },
+        { id: 'top-web-1', unit: 'Unit 1: Modern Frontend', sequence: 1, name: 'Semantic HTML5, Accessibility & SEO', plannedHours: 4.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-08-10' },
+        { id: 'top-web-2', unit: 'Unit 1: Modern Frontend', sequence: 2, name: 'CSS Flexbox, Grid & Responsive Design', plannedHours: 4.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-08-20' },
+        { id: 'top-web-3', unit: 'Unit 2: JavaScript Deep Dive', sequence: 3, name: 'ES6+ Syntax, Closures & Event Loop', plannedHours: 5.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-09-02' },
+        { id: 'top-web-4', unit: 'Unit 2: JavaScript Deep Dive', sequence: 4, name: 'Promises, Async/Await & Fetch API', plannedHours: 4.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-09-15' },
+        { id: 'top-web-5', unit: 'Unit 3: Component Architecture', sequence: 5, name: 'React Foundations, JSX & Virtual DOM', plannedHours: 5.0, status: 'IN_PROGRESS', percentageComplete: 50, examScope: 'MID_TERM,FINAL', plannedDate: '2026-09-28' },
+        { id: 'top-web-6', unit: 'Unit 3: Component Architecture', sequence: 6, name: 'Hooks: useState, useEffect & Custom Hooks', plannedHours: 5.0, status: 'PENDING', percentageComplete: 0, examScope: 'MID_TERM,FINAL', plannedDate: '2026-10-12' },
+        { id: 'top-web-7', unit: 'Unit 4: Backend & APIs', sequence: 7, name: 'Node.js, Express & RESTful Architecture', plannedHours: 5.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL', plannedDate: '2026-11-02' },
+        { id: 'top-web-8', unit: 'Unit 4: Backend & APIs', sequence: 8, name: 'JWT Authentication & Security', plannedHours: 4.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL', plannedDate: '2026-11-16' },
       ],
     },
     {
-      id: 'sub-cn',
+      id: 'sub-mirai-prod',
       code: 'CS303',
-      name: 'Computer Networks',
+      name: 'Product Development',
       campusId: 'camp-hitech',
       campusName: 'HI-Tech',
+      trackId: 'track-mirai',
       trackName: 'Mirai Track',
       batchId: 'batch-hitech-mirai',
       facultyId: 'usr-fac-sharma',
-      facultyName: 'Prof. Rajesh Sharma',
-      targetFinishDate: '2026-12-05',
-      color: '#68a0df',
+      facultyName: 'Vishal Rathee',
+      targetFinishDate: '2026-12-18', // Configured to ensure ON TRACK status (buffer ratio >= 1.15)
+      color: '#10b981',
+      recordLabel: null,
+      needsAdminReview: false,
       topics: [
-        { id: 'top-cn-1', unit: 'Unit 1', sequence: 1, name: 'OSI vs TCP/IP Protocol Layers', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-cn-2', unit: 'Unit 1', sequence: 2, name: 'Physical Layer & Transmission Media', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-cn-3', unit: 'Unit 1', sequence: 3, name: 'Data Link Framing & Flow Control', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-cn-4', unit: 'Unit 2', sequence: 4, name: 'Error Detection: Parity & CRC', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-cn-5', unit: 'Unit 2', sequence: 5, name: 'IPv4 Addressing & Subnetting', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-cn-6', unit: 'Unit 2', sequence: 6, name: 'Routing: Distance Vector & Link State', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-cn-7', unit: 'Unit 3', sequence: 7, name: 'TCP 3-Way Handshake & Flow Control', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'FINAL' },
-        { id: 'top-cn-8', unit: 'Unit 3', sequence: 8, name: 'Congestion Control Algorithms', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'FINAL' },
-        { id: 'top-cn-9', unit: 'Unit 4', sequence: 9, name: 'DNS, HTTP/2 & Web Sockets', plannedHours: 2.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL' },
-        { id: 'top-cn-10', unit: 'Unit 4', sequence: 10, name: 'TLS Handshake & Cryptographic Security', plannedHours: 2.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL' },
+        { id: 'top-prod-1', unit: 'Unit 1: Strategy', sequence: 1, name: 'Problem Identification & Design Thinking', plannedHours: 4.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-08-12' },
+        { id: 'top-prod-2', unit: 'Unit 1: Strategy', sequence: 2, name: 'User Research, Personas & Customer Journeys', plannedHours: 4.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-08-25' },
+        { id: 'top-prod-3', unit: 'Unit 2: Wireframing', sequence: 3, name: 'Information Architecture & Wireframing', plannedHours: 4.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-09-12' },
+        { id: 'top-prod-4', unit: 'Unit 2: Wireframing', sequence: 4, name: 'Figma Interactive Prototyping', plannedHours: 4.0, status: 'IN_PROGRESS', percentageComplete: 50, examScope: 'MID_TERM,FINAL', plannedDate: '2026-09-29' },
+        { id: 'top-prod-5', unit: 'Unit 3: Agile Execution', sequence: 5, name: 'PRD Documentation & User Stories', plannedHours: 4.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL', plannedDate: '2026-10-15' },
+        { id: 'top-prod-6', unit: 'Unit 4: Metrics', sequence: 6, name: 'North Star, Retention & Funnel Analytics', plannedHours: 4.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL', plannedDate: '2026-11-18' },
+      ],
+    },
+
+    // ----------------------------------------------------
+    // HI-TECH · AKTU TRACK SUBJECTS (Assigned from Screenshots)
+    // ----------------------------------------------------
+    {
+      id: 'sub-aktu-iks',
+      code: 'KNC101',
+      name: 'IKS',
+      campusId: 'camp-hitech',
+      campusName: 'HI-Tech',
+      trackId: 'track-aktu',
+      trackName: 'AKTU Track',
+      batchId: 'batch-hitech-aktu',
+      facultyId: 'usr-fac-himanshu',
+      facultyName: 'Himanshu Sharma Kumar',
+      targetFinishDate: '2026-12-15',
+      color: '#f59e0b',
+      recordLabel: null,
+      needsAdminReview: false,
+      topics: [
+        { id: 'top-iks-1', unit: 'Unit 1: Overview', sequence: 1, name: 'Historical Context and Vedic Sciences', plannedHours: 4.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-08-20' },
+        { id: 'top-iks-2', unit: 'Unit 2: Traditional Knowledge', sequence: 2, name: 'Astronomy, Metallurgy & Math Heritage', plannedHours: 4.0, status: 'PENDING', percentageComplete: 0, examScope: 'MID_TERM,FINAL', plannedDate: '2026-10-15' },
+        { id: 'top-iks-3', unit: 'Unit 3: Modern Relevance', sequence: 3, name: 'Integration of IKS with Modern Science', plannedHours: 4.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL', plannedDate: '2026-11-25' },
       ],
     },
     {
-      id: 'sub-ml',
-      code: 'AI301',
-      name: 'Machine Learning',
+      id: 'sub-aktu-electrical',
+      code: 'KEE101',
+      name: 'Fundamentals of Electrical Engg.',
       campusId: 'camp-hitech',
       campusName: 'HI-Tech',
-      trackName: 'Mirai Track',
-      batchId: 'batch-hitech-mirai',
-      facultyId: 'usr-fac-sharma',
-      facultyName: 'Prof. Rajesh Sharma',
-      targetFinishDate: '2026-12-05',
-      color: '#68bd96',
-      topics: [
-        { id: 'top-ml-1', unit: 'Unit 1', sequence: 1, name: 'Introduction to Supervised Learning', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-ml-2', unit: 'Unit 1', sequence: 2, name: 'Linear Regression & Gradient Descent', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-ml-3', unit: 'Unit 1', sequence: 3, name: 'Logistic Regression & Decision Boundaries', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-ml-4', unit: 'Unit 2', sequence: 4, name: 'Overfitting, Regularization (L1/L2)', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-ml-5', unit: 'Unit 2', sequence: 5, name: 'Support Vector Machines (SVM)', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-ml-6', unit: 'Unit 2', sequence: 6, name: 'Decision Trees & Information Gain', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-ml-7', unit: 'Unit 3', sequence: 7, name: 'Random Forests & Ensemble Bagging', plannedHours: 2.0, status: 'IN_PROGRESS', percentageComplete: 50, examScope: 'FINAL' },
-        { id: 'top-ml-8', unit: 'Unit 3', sequence: 8, name: 'Gradient Boosting (XGBoost)', plannedHours: 2.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL' },
-        { id: 'top-ml-9', unit: 'Unit 3', sequence: 9, name: 'K-Means & Hierarchical Clustering', plannedHours: 2.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL' },
-        { id: 'top-ml-10', unit: 'Unit 4', sequence: 10, name: 'Principal Component Analysis (PCA)', plannedHours: 2.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL' },
-        { id: 'top-ml-11', unit: 'Unit 4', sequence: 11, name: 'Neural Networks: Backpropagation', plannedHours: 2.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL' },
-      ],
-    },
-    {
-      id: 'sub-os',
-      code: 'CS304',
-      name: 'Operating Systems',
-      campusId: 'camp-hitech',
-      campusName: 'HI-Tech',
-      trackName: 'Mirai Track',
-      batchId: 'batch-hitech-mirai',
+      trackId: 'track-aktu',
+      trackName: 'AKTU Track',
+      batchId: 'batch-hitech-aktu',
       facultyId: 'usr-fac-gupta',
-      facultyName: 'Dr. Ananya Gupta',
-      targetFinishDate: '2026-12-05',
-      color: '#e98783',
+      facultyName: 'Aman Srivastava',
+      targetFinishDate: '2026-12-15',
+      color: '#8b5cf6',
+      recordLabel: null,
+      needsAdminReview: false,
       topics: [
-        { id: 'top-os-1', unit: 'Unit 1', sequence: 1, name: 'OS Architectures & System Calls', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-os-2', unit: 'Unit 1', sequence: 2, name: 'Processes, Threads & Concurrency', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-os-3', unit: 'Unit 1', sequence: 3, name: 'CPU Scheduling Algorithms', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-os-4', unit: 'Unit 2', sequence: 4, name: 'Semaphores & Mutex Locks', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-os-5', unit: 'Unit 2', sequence: 5, name: 'Banker Algorithm & Deadlock Avoidance', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-os-6', unit: 'Unit 3', sequence: 6, name: 'Virtual Memory & Page Replacement', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'FINAL' },
-        { id: 'top-os-7', unit: 'Unit 3', sequence: 7, name: 'File Systems & Inode Structure', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'FINAL' },
-        { id: 'top-os-8', unit: 'Unit 4', sequence: 8, name: 'Disk Scheduling & SSD Architectures', plannedHours: 2.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL' },
+        { id: 'top-fee-1', unit: 'Unit 1: DC Circuits', sequence: 1, name: 'Kirchhoff Laws & Mesh/Nodal Analysis', plannedHours: 5.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-08-22' },
+        { id: 'top-fee-2', unit: 'Unit 2: AC Circuits', sequence: 2, name: 'Single-Phase AC Resonance & Power Factor', plannedHours: 5.0, status: 'IN_PROGRESS', percentageComplete: 40, examScope: 'MID_TERM,FINAL', plannedDate: '2026-09-25' },
+        { id: 'top-fee-3', unit: 'Unit 3: Transformers', sequence: 3, name: 'Magnetic Circuits & Transformers', plannedHours: 5.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL', plannedDate: '2026-11-15' },
       ],
     },
     {
-      id: 'sub-ai',
-      code: 'AI302',
-      name: 'Artificial Intelligence',
+      id: 'sub-aktu-physics',
+      code: 'KAS101',
+      name: 'Physics',
       campusId: 'camp-hitech',
       campusName: 'HI-Tech',
-      trackName: 'Mirai Track',
-      batchId: 'batch-hitech-mirai',
-      facultyId: 'usr-fac-sharma',
-      facultyName: 'Prof. Rajesh Sharma',
-      targetFinishDate: '2026-12-05',
-      color: '#7daab0',
+      trackId: 'track-aktu',
+      trackName: 'AKTU Track',
+      batchId: 'batch-hitech-aktu',
+      facultyId: 'usr-fac-himanshu',
+      facultyName: 'Himanshu Sharma Kumar',
+      targetFinishDate: '2026-12-15',
+      color: '#3b82f6',
+      recordLabel: null,
+      needsAdminReview: false,
       topics: [
-        { id: 'top-ai-1', unit: 'Unit 1', sequence: 1, name: 'Foundations & State Space Search', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-ai-2', unit: 'Unit 1', sequence: 2, name: 'Informed Search: A* & Heuristics', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-ai-3', unit: 'Unit 1', sequence: 3, name: 'Adversarial Search & Alpha-Beta', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-ai-4', unit: 'Unit 2', sequence: 4, name: 'Constraint Satisfaction Problems', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-ai-5', unit: 'Unit 2', sequence: 5, name: 'Knowledge Representation & First-Order Logic', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL' },
-        { id: 'top-ai-6', unit: 'Unit 3', sequence: 6, name: 'Bayesian Networks & Probabilistic Inference', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'FINAL' },
-        { id: 'top-ai-7', unit: 'Unit 3', sequence: 7, name: 'Markov Decision Processes (MDP)', plannedHours: 2.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'FINAL' },
-        { id: 'top-ai-8', unit: 'Unit 4', sequence: 8, name: 'Reinforcement Learning: Q-Learning', plannedHours: 2.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL' },
+        { id: 'top-phy-1', unit: 'Unit 1: Relativistic Mechanics', sequence: 1, name: 'Lorentz Transformations & Time Dilation', plannedHours: 5.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-08-25' },
+        { id: 'top-phy-2', unit: 'Unit 2: Quantum Mechanics', sequence: 2, name: 'Wave Mechanics & Schrodinger Equation', plannedHours: 5.0, status: 'PENDING', percentageComplete: 0, examScope: 'MID_TERM,FINAL', plannedDate: '2026-10-10' },
+      ],
+    },
+    {
+      id: 'sub-aktu-dsa1',
+      code: 'KCS101',
+      name: 'Data Structure and Algorithm 1',
+      campusId: 'camp-hitech',
+      campusName: 'HI-Tech',
+      trackId: 'track-aktu',
+      trackName: 'AKTU Track',
+      batchId: 'batch-hitech-aktu',
+      facultyId: 'usr-fac-sharma',
+      facultyName: 'Vishal Rathee',
+      targetFinishDate: '2026-12-05',
+      color: '#ec4899',
+      recordLabel: null,
+      needsAdminReview: false,
+      topics: [
+        { id: 'top-dsa1-1', unit: 'Unit 1: Arrays & Sorting', sequence: 1, name: 'Arrays, Searching & Sorting Algorithms', plannedHours: 5.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-08-15' },
+        { id: 'top-dsa1-2', unit: 'Unit 2: Stacks & Queues', sequence: 2, name: 'Stack Operations & Infix/Postfix Evaluation', plannedHours: 5.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-09-01' },
+        { id: 'top-dsa1-3', unit: 'Unit 3: Linked Lists', sequence: 3, name: 'Singly and Doubly Linked List Traversal', plannedHours: 5.0, status: 'IN_PROGRESS', percentageComplete: 70, examScope: 'MID_TERM,FINAL', plannedDate: '2026-09-20' },
+        { id: 'top-dsa1-4', unit: 'Unit 4: Trees', sequence: 4, name: 'Binary Trees and BST Search', plannedHours: 6.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL', plannedDate: '2026-10-25' },
+        { id: 'top-dsa1-5', unit: 'Unit 5: Graphs', sequence: 5, name: 'Graph Traversal & Spanning Trees', plannedHours: 6.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL', plannedDate: '2026-11-20' },
+      ],
+    },
+    {
+      id: 'sub-aktu-prompt',
+      code: 'KAI101',
+      name: 'Introduction to prompt Eng',
+      campusId: 'camp-hitech',
+      campusName: 'HI-Tech',
+      trackId: 'track-aktu',
+      trackName: 'AKTU Track',
+      batchId: 'batch-hitech-aktu',
+      facultyId: 'usr-fac-sharma',
+      facultyName: 'Vishal Rathee',
+      targetFinishDate: '2026-12-15',
+      color: '#f97316',
+      recordLabel: null,
+      needsAdminReview: false,
+      topics: [
+        { id: 'top-pe-1', unit: 'Unit 1: Prompt Fundamentals', sequence: 1, name: 'Zero-shot, Few-shot & Chain of Thought', plannedHours: 4.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-08-24' },
+        { id: 'top-pe-2', unit: 'Unit 2: LLM Workflows', sequence: 2, name: 'System Prompts, Delimiters & Formatting', plannedHours: 4.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL', plannedDate: '2026-11-05' },
+      ],
+    },
+    {
+      id: 'sub-aktu-langlab',
+      code: 'KAS151',
+      name: 'Language lab',
+      campusId: 'camp-hitech',
+      campusName: 'HI-Tech',
+      trackId: 'track-aktu',
+      trackName: 'AKTU Track',
+      batchId: 'batch-hitech-aktu',
+      facultyId: 'usr-fac-soniya',
+      facultyName: 'Soniya tyagi',
+      targetFinishDate: '2026-12-15',
+      color: '#84cc16',
+      recordLabel: null,
+      needsAdminReview: false,
+      topics: [
+        { id: 'top-ll-1', unit: 'Unit 1: Phonetics', sequence: 1, name: 'Pronunciation, Accent & Listening Comprehension', plannedHours: 3.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-08-26' },
+      ],
+    },
+    {
+      id: 'sub-aktu-physlab',
+      code: 'KAS152',
+      name: 'Physics Lab',
+      campusId: 'camp-hitech',
+      campusName: 'HI-Tech',
+      trackId: 'track-aktu',
+      trackName: 'AKTU Track',
+      batchId: 'batch-hitech-aktu',
+      facultyId: 'usr-fac-suman',
+      facultyName: 'Dr Suman Rajput',
+      targetFinishDate: '2026-12-15',
+      color: '#06b6d4',
+      recordLabel: null,
+      needsAdminReview: false,
+      topics: [
+        { id: 'top-pl-1', unit: 'Unit 1: Optics Experiments', sequence: 1, name: 'Newton Rings & Diffraction Grating', plannedHours: 3.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-08-28' },
+      ],
+    },
+    {
+      id: 'sub-aktu-math1',
+      code: 'KAS103',
+      name: 'Mathematics-I',
+      campusId: 'camp-hitech',
+      campusName: 'HI-Tech',
+      trackId: 'track-aktu',
+      trackName: 'AKTU Track',
+      batchId: 'batch-hitech-aktu',
+      facultyId: 'usr-fac-gaurav',
+      facultyName: 'Gaurav Singh Singh',
+      targetFinishDate: '2026-12-15',
+      color: '#6366f1',
+      recordLabel: null,
+      needsAdminReview: false,
+      topics: [
+        { id: 'top-m1-1', unit: 'Unit 1: Matrices', sequence: 1, name: 'Rank of Matrix & Cayley-Hamilton Theorem', plannedHours: 5.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-08-21' },
+        { id: 'top-m1-2', unit: 'Unit 2: Differential Calculus', sequence: 2, name: 'Partial Derivatives & Euler Theorem', plannedHours: 5.0, status: 'IN_PROGRESS', percentageComplete: 50, examScope: 'MID_TERM,FINAL', plannedDate: '2026-09-24' },
+      ],
+    },
+    {
+      id: 'sub-aktu-programming',
+      code: 'KCS103',
+      name: 'Programming language',
+      campusId: 'camp-hitech',
+      campusName: 'HI-Tech',
+      trackId: 'track-aktu',
+      trackName: 'AKTU Track',
+      batchId: 'batch-hitech-aktu',
+      facultyId: 'usr-fac-sharma',
+      facultyName: 'Vishal Rathee',
+      targetFinishDate: '2026-12-15',
+      color: '#a855f7',
+      recordLabel: null,
+      needsAdminReview: false,
+      topics: [
+        { id: 'top-pr-1', unit: 'Unit 1: Control Statements', sequence: 1, name: 'Loops, Conditionals & Functions', plannedHours: 4.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-08-23' },
+      ],
+    },
+    {
+      id: 'sub-aktu-eleclab',
+      code: 'KEE151',
+      name: 'Electrical Engg. Lab',
+      campusId: 'camp-hitech',
+      campusName: 'HI-Tech',
+      trackId: 'track-aktu',
+      trackName: 'AKTU Track',
+      batchId: 'batch-hitech-aktu',
+      facultyId: 'usr-fac-gupta',
+      facultyName: 'Aman Srivastava',
+      targetFinishDate: '2026-12-15',
+      color: '#ef4444',
+      recordLabel: null,
+      needsAdminReview: false,
+      topics: [
+        { id: 'top-el-1', unit: 'Unit 1: Practical Verification', sequence: 1, name: 'Thevenin & Norton Theorem Verification', plannedHours: 3.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-08-27' },
+      ],
+    },
+    {
+      id: 'sub-aktu-cad',
+      code: 'KCE151',
+      name: 'Computer-Aided Engineering Drawing',
+      campusId: 'camp-hitech',
+      campusName: 'HI-Tech',
+      trackId: 'track-aktu',
+      trackName: 'AKTU Track',
+      batchId: 'batch-hitech-aktu',
+      facultyId: 'usr-fac-zakir',
+      facultyName: 'Zakir Husain Husain',
+      targetFinishDate: '2026-12-15',
+      color: '#64748b',
+      recordLabel: null,
+      needsAdminReview: false,
+      topics: [
+        { id: 'top-cad-1', unit: 'Unit 1: Orthographic Projections', sequence: 1, name: 'Points, Lines & Solid Planes Projections', plannedHours: 4.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-08-29' },
       ],
     },
   ],
   timetables: [
-    { id: 'tt-1', dayOfWeek: 'Monday', startTime: '09:00', endTime: '10:30', subjectId: 'sub-dsa', facultyId: 'usr-fac-sharma', room: 'Room 204' },
-    { id: 'tt-2', dayOfWeek: 'Monday', startTime: '11:00', endTime: '12:30', subjectId: 'sub-cn', facultyId: 'usr-fac-sharma', room: 'Room 108' },
-    { id: 'tt-3', dayOfWeek: 'Monday', startTime: '14:00', endTime: '15:30', subjectId: 'sub-ml', facultyId: 'usr-fac-sharma', room: 'Lab 03' },
-    { id: 'tt-4', dayOfWeek: 'Tuesday', startTime: '09:00', endTime: '10:30', subjectId: 'sub-dbms', facultyId: 'usr-fac-gupta', room: 'Room 105' },
-    { id: 'tt-5', dayOfWeek: 'Tuesday', startTime: '11:00', endTime: '12:30', subjectId: 'sub-os', facultyId: 'usr-fac-gupta', room: 'Room 204' },
-    { id: 'tt-6', dayOfWeek: 'Tuesday', startTime: '14:00', endTime: '15:30', subjectId: 'sub-ai', facultyId: 'usr-fac-sharma', room: 'Room 108' },
-    { id: 'tt-7', dayOfWeek: 'Wednesday', startTime: '09:00', endTime: '10:30', subjectId: 'sub-dsa', facultyId: 'usr-fac-sharma', room: 'Room 204' },
-    { id: 'tt-8', dayOfWeek: 'Wednesday', startTime: '11:00', endTime: '12:30', subjectId: 'sub-cn', facultyId: 'usr-fac-sharma', room: 'Room 108' },
-    { id: 'tt-9', dayOfWeek: 'Wednesday', startTime: '14:00', endTime: '15:30', subjectId: 'sub-ml', facultyId: 'usr-fac-sharma', room: 'Lab 03' },
-    { id: 'tt-10', dayOfWeek: 'Thursday', startTime: '09:00', endTime: '10:30', subjectId: 'sub-dbms', facultyId: 'usr-fac-gupta', room: 'Room 105' },
-    { id: 'tt-11', dayOfWeek: 'Thursday', startTime: '11:00', endTime: '12:30', subjectId: 'sub-os', facultyId: 'usr-fac-gupta', room: 'Room 204' },
-    { id: 'tt-12', dayOfWeek: 'Thursday', startTime: '14:00', endTime: '15:30', subjectId: 'sub-ai', facultyId: 'usr-fac-sharma', room: 'Room 108' },
-    { id: 'tt-13', dayOfWeek: 'Friday', startTime: '09:00', endTime: '10:30', subjectId: 'sub-dsa', facultyId: 'usr-fac-sharma', room: 'Room 204' },
-    { id: 'tt-14', dayOfWeek: 'Friday', startTime: '11:00', endTime: '12:30', subjectId: 'sub-dbms', facultyId: 'usr-fac-gupta', room: 'Room 105' },
-    { id: 'tt-15', dayOfWeek: 'Friday', startTime: '14:00', endTime: '15:30', subjectId: 'sub-ml', facultyId: 'usr-fac-sharma', room: 'Lab 03' },
-    { id: 'tt-16', dayOfWeek: 'Saturday', startTime: '10:00', endTime: '12:00', subjectId: 'sub-ai', facultyId: 'usr-fac-sharma', room: 'Auditorium' },
+    // Mirai Track Recurring Schedule (Mon-Sat)
+    { id: 'tt-mon-1', dayOfWeek: 'Monday', startTime: '09:00', endTime: '10:30', subjectId: 'sub-dsa', facultyId: 'usr-fac-sharma', room: 'Lab 101' },
+    { id: 'tt-2', dayOfWeek: 'Monday', startTime: '11:00', endTime: '12:30', subjectId: 'sub-mirai-web', facultyId: 'usr-fac-gupta', room: 'Lab 102' },
+    { id: 'tt-3', dayOfWeek: 'Tuesday', startTime: '09:00', endTime: '10:30', subjectId: 'sub-mirai-prod', facultyId: 'usr-fac-sharma', room: 'Studio A' },
+    { id: 'tt-5', dayOfWeek: 'Wednesday', startTime: '09:00', endTime: '10:30', subjectId: 'sub-dsa', facultyId: 'usr-fac-sharma', room: 'Lab 101' },
+    { id: 'tt-6', dayOfWeek: 'Wednesday', startTime: '11:00', endTime: '12:30', subjectId: 'sub-mirai-web', facultyId: 'usr-fac-gupta', room: 'Lab 102' },
+    { id: 'tt-8', dayOfWeek: 'Thursday', startTime: '09:00', endTime: '10:30', subjectId: 'sub-mirai-prod', facultyId: 'usr-fac-sharma', room: 'Studio A' },
+    { id: 'tt-9', dayOfWeek: 'Friday', startTime: '09:00', endTime: '10:30', subjectId: 'sub-dsa', facultyId: 'usr-fac-sharma', room: 'Lab 101' },
+    { id: 'tt-10', dayOfWeek: 'Friday', startTime: '11:00', endTime: '12:30', subjectId: 'sub-mirai-web', facultyId: 'usr-fac-gupta', room: 'Lab 102' },
+    { id: 'tt-11', dayOfWeek: 'Saturday', startTime: '10:00', endTime: '12:00', subjectId: 'sub-mirai-prod', facultyId: 'usr-fac-sharma', room: 'Auditorium' },
+
+    // AKTU Track Timetable Slots
+    { id: 'tt-aktu-1', dayOfWeek: 'Monday', startTime: '14:00', endTime: '15:30', subjectId: 'sub-aktu-dsa1', facultyId: 'usr-fac-sharma', room: 'Hall B' },
+    { id: 'tt-aktu-3', dayOfWeek: 'Wednesday', startTime: '14:00', endTime: '15:30', subjectId: 'sub-aktu-physics', facultyId: 'usr-fac-himanshu', room: 'Physics Lab' },
+    { id: 'tt-aktu-4', dayOfWeek: 'Thursday', startTime: '14:00', endTime: '15:30', subjectId: 'sub-aktu-electrical', facultyId: 'usr-fac-gupta', room: 'EE Lab' },
+    { id: 'tt-aktu-5', dayOfWeek: 'Friday', startTime: '14:00', endTime: '15:30', subjectId: 'sub-aktu-iks', facultyId: 'usr-fac-himanshu', room: 'Hall A' },
   ],
   alerts: [
     {
       id: 'alt-1',
       type: 'CAMPUS_MANAGER_ESCALATION',
-      title: 'Database Systems is falling behind',
-      message: 'Buffer ratio has dropped below 1.00 (Critical Shortage). 3 buffer sessions need to be scheduled.',
+      title: 'Pacing Check: Product Development',
+      message: 'Product Development pacing is ON TRACK with comfortable buffer ratio (>1.15).',
       time: '2 hours ago',
-      level: 'danger',
+      level: 'success',
     },
     {
       id: 'alt-2',
       type: 'FACULTY_REMINDER',
       title: '1 session is waiting for confirmation',
-      message: 'Computer Networks session yesterday at 11:30 AM is waiting for confirmation.',
+      message: 'Class session yesterday at 11:30 AM is waiting for confirmation.',
       time: 'Yesterday',
       level: 'warning',
     },
@@ -549,7 +705,9 @@ class AppStore {
   constructor() {
     this.state = this.loadState();
     this.currentRole = 'faculty';
-    this.currentTab = 'dashboard';
+    this.currentTab = 'subjects'; // Feature 6 Dashboard excluded per user requirement
+    this.selectedCampus = 'camp-hitech';
+    this.selectedTrack = 'track-mirai';
     this.isBackendConnected = false;
     this.charts = {};
     this.auth = {
@@ -564,13 +722,43 @@ class AppStore {
       resendTimer: null,
       resendTimeLeft: 30,
     };
+    this.initTheme();
+  }
+
+  initTheme() {
+    if (typeof localStorage === 'undefined') return;
+    const saved = localStorage.getItem('msot_theme') || 'light';
+    this.setTheme(saved);
+  }
+
+  toggleDarkMode() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark' || document.body.classList.contains('theme-dark');
+    this.setTheme(isDark ? 'light' : 'dark');
+  }
+
+  setTheme(theme) {
+    const icon = document.getElementById('darkModeIcon');
+    if (theme === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      document.body.classList.add('theme-dark');
+      if (icon) icon.textContent = '☀️';
+      if (typeof localStorage !== 'undefined') localStorage.setItem('msot_theme', 'dark');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      document.body.classList.remove('theme-dark');
+      if (icon) icon.textContent = '🌙';
+      if (typeof localStorage !== 'undefined') localStorage.setItem('msot_theme', 'light');
+    }
   }
 
   loadState() {
-    const saved = localStorage.getItem('msot_app_state_v1');
+    const saved = localStorage.getItem('msot_app_state_v5');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.subjects && parsed.subjects.length >= 10) {
+          return parsed;
+        }
       } catch (e) {
         console.warn('Failed to parse cached state, resetting.', e);
       }
@@ -579,7 +767,7 @@ class AppStore {
   }
 
   saveState() {
-    localStorage.setItem('msot_app_state_v1', JSON.stringify(this.state));
+    localStorage.setItem('msot_app_state_v5', JSON.stringify(this.state));
   }
 
   async checkBackendConnection() {
@@ -591,7 +779,8 @@ class AppStore {
       if (res.ok) {
         this.isBackendConnected = true;
         if (pill) pill.classList.add('connected');
-        if (text) text.textContent = 'API Live (Port 5001)';
+        if (text) text.textContent = 'API Live (Port 3000)';
+        this.syncWithBackend();
         return true;
       }
     } catch (e) {
@@ -602,6 +791,157 @@ class AppStore {
     if (pill) pill.classList.remove('connected');
     if (text) text.textContent = 'Local Engine Active';
     return false;
+  }
+
+  async syncWithBackend() {
+    try {
+      const headers = this.auth?.token ? { 'Authorization': `Bearer ${this.auth.token}` } : {};
+      const [subRes, ttRes, altRes, catalogRes] = await Promise.allSettled([
+        fetch(`${API_BASE}/subjects`, { headers }),
+        fetch(`${API_BASE}/timetables`, { headers }),
+        fetch(`${API_BASE}/alerts`, { headers }),
+        fetch(`${API_BASE}/subjects/all-catalog`, { headers }),
+      ]);
+      if (subRes.status === 'fulfilled' && subRes.value.ok) {
+        const data = await subRes.value.json();
+        if (data.subjects && data.subjects.length > 0) {
+          this.state.subjects = data.subjects.map((s) => ({
+            id: s.id,
+            code: s.code,
+            name: s.name,
+            color: s.color,
+            campusId: s.campusId || s.campus?.id,
+            campusName: s.campus?.name || 'HI-Tech',
+            trackId: s.trackId || (s.track?.id === 'track-aktu' ? 'track-aktu' : 'track-mirai'),
+            trackName: s.track?.name || 'Mirai Track',
+            batchId: s.batchId,
+            facultyId: s.faculty?.id,
+            facultyName: s.faculty?.name || 'Unassigned (Pending Admin Review)',
+            targetFinishDate: s.targetFinishDate,
+            recordLabel: s.recordLabel,
+            needsAdminReview: Boolean(s.needsAdminReview),
+            courseCategory: s.courseCategory,
+            department: s.department,
+            credits: s.credits,
+            contactHoursL: s.contactHoursL,
+            contactHoursT: s.contactHoursT,
+            contactHoursP: s.contactHoursP,
+            ncrfHours: s.ncrfHours,
+            isAlternative: Boolean(s.isAlternative),
+            alternativeGroup: s.alternativeGroup,
+            alternativeFor: s.alternativeFor,
+            isActiveForBatch: Boolean(s.isActiveForBatch),
+            sourceDocument: s.sourceDocument,
+            sourceVersion: s.sourceVersion,
+            pageReference: s.pageReference,
+            courseType: s.courseType,
+            topics: (s.topics || []).map((t) => ({
+              id: t.id,
+              unit: t.unit,
+              sequence: t.sequence,
+              name: t.name,
+              plannedHours: t.plannedHours,
+              status: t.status,
+              percentageComplete: t.completionPercentage,
+              coveredHours: t.coveredHours,
+              examScope: t.examScopes,
+              approvedExamScope: t.approvedExamScope || t.examScopes,
+              plannedDate: t.plannedDate,
+              unitWeightage: t.unitWeightage,
+              learningOutcomes: t.learningOutcomes,
+              prerequisiteKnowledge: t.prerequisiteKnowledge,
+              diagnosticQuestion: t.diagnosticQuestion,
+              conceptExplanation: t.conceptExplanation,
+              workedExample: t.workedExample,
+              guidedPractice: t.guidedPractice,
+              independentApplication: t.independentApplication,
+              teachingMethod: t.teachingMethod,
+              readingsResources: t.readingsResources,
+              equipmentSafetyNotes: t.equipmentSafetyNotes,
+              formativeCheck: t.formativeCheck,
+              assignmentEvidence: t.assignmentEvidence,
+              reflectionRemediation: t.reflectionRemediation,
+              inclusiveOptions: t.inclusiveOptions,
+              facultyNotes: t.facultyNotes,
+              lessonPlanStatus: t.lessonPlanStatus || 'DRAFT',
+              version: t.version || 1,
+              sourceDocument: t.sourceDocument,
+              pageReference: t.pageReference,
+            })),
+          }));
+        }
+      }
+      if (catalogRes.status === 'fulfilled' && catalogRes.value.ok) {
+        const catData = await catalogRes.value.json();
+        this.state.allCatalog = catData.subjects || [];
+      }
+      if (ttRes.status === 'fulfilled' && ttRes.value.ok) {
+        const data = await ttRes.value.json();
+        if (data.entries && data.entries.length > 0) {
+          this.state.timetables = data.entries.map((e) => ({
+            id: e.id,
+            dayOfWeek: e.dayOfWeek,
+            startTime: e.startTime,
+            endTime: e.endTime,
+            durationHours: e.durationHours,
+            room: e.room,
+            subjectId: e.subjectId,
+            facultyId: e.faculty?.id,
+            facultyName: e.faculty?.name,
+            batchId: e.batch?.id,
+          }));
+          this.state.totalWeeklyHours = data.totalWeeklyHours || 0;
+        }
+      }
+      if (altRes.status === 'fulfilled' && altRes.value.ok) {
+        const data = await altRes.value.json();
+        if (data.alerts && data.alerts.length > 0) {
+          this.state.alerts = data.alerts.map((a) => ({
+            id: a.id,
+            type: a.type,
+            title: a.title,
+            message: a.message,
+            time: 'Active',
+            level: a.type.includes('ESCALATION') ? 'danger' : 'warning',
+            status: a.status,
+            deliveryChannel: a.deliveryChannel,
+            isEscalated: Boolean(a.isEscalated),
+            escalatedTo: a.escalatedTo,
+            escalatedName: a.escalatedName,
+            acknowledgedAt: a.acknowledgedAt,
+          }));
+        }
+      }
+      this.render();
+    } catch (e) {
+      console.warn('Backend sync warning:', e);
+    }
+  }
+
+  setCampus(campusId) {
+    this.selectedCampus = campusId;
+    document.querySelectorAll('.login-campus-btn').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.campus === campusId);
+    });
+    document.querySelectorAll('.campus-bar-pill').forEach((pill) => {
+      pill.classList.toggle('active', pill.dataset.campus === campusId);
+    });
+    const notice = document.getElementById('selectedCampusNotice');
+    const campObj = this.state.campuses.find((c) => c.id === campusId);
+    if (notice && campObj) {
+      notice.innerHTML = `Viewing: <strong>${campObj.name} Campus</strong>`;
+    }
+    const campName = campObj?.name || 'HI-Tech';
+    this.showToast(`Switched workspace to ${campName}`);
+    this.render();
+  }
+
+  setTrack(trackId) {
+    this.selectedTrack = trackId;
+    document.querySelectorAll('.track-tab').forEach((tab) => {
+      tab.classList.toggle('active', tab.dataset.track === trackId);
+    });
+    this.render();
   }
 
   isAuthenticated() {
@@ -666,6 +1006,10 @@ class AppStore {
     if (!this.isAuthenticated()) {
       this.renderAuthGate();
       return;
+    }
+    // Redirect dashboard requests to subjects (Feature 6 progress dashboard excluded per user prompt)
+    if (tab === 'dashboard') {
+      tab = 'subjects';
     }
     this.currentTab = tab;
     document.querySelectorAll('.nav-tab').forEach((el) => {
@@ -744,7 +1088,8 @@ class AppStore {
     const nextTopic = subject?.topics.find((t) => t.status !== 'COMPLETED' && t.status !== 'SKIPPED') || subject?.topics[0];
 
     document.getElementById('logTimetableId').value = targetSlot.id;
-    document.getElementById('logSubjectCode').textContent = subject.code;
+    const codeEl = document.getElementById('logSubjectCode');
+    if (codeEl) codeEl.textContent = '';
     document.getElementById('logSubjectName').textContent = subject.name;
     document.getElementById('logScheduleMeta').textContent = `${targetSlot.dayOfWeek} · ${targetSlot.startTime} - ${targetSlot.endTime} · ${targetSlot.room}`;
 
@@ -761,6 +1106,7 @@ class AppStore {
     this.setCwChip('None');
 
     this.openModal('sessionLogModal');
+    this.loadPendingAiDrafts();
   }
 
   setStatusChip(status) {
@@ -843,24 +1189,430 @@ class AppStore {
 
     // If online, optionally sync to backend
     if (this.isBackendConnected) {
-      fetch(`${API_BASE}/logs`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          timetable_id: timetableId,
-          status,
-          percentage_complete: pct,
-          topics_covered: topicsCovered,
-          leftovers,
-          notes,
-        }),
-      }).catch((err) => console.warn('Background sync failed:', err));
+      const authHeaders = {
+        'Content-Type': 'application/json',
+        ...(this.auth?.token ? { 'Authorization': `Bearer ${this.auth.token}` } : {})
+      };
+
+      if (this.activeDraftId) {
+        // Explicitly confirm AI proposed draft
+        fetch(`${API_BASE}/logs/drafts/${this.activeDraftId}/confirm`, {
+          method: 'POST',
+          headers: authHeaders,
+          body: JSON.stringify({
+            timetableId,
+            status,
+            percentageComplete: pct,
+            topicsCovered,
+            leftovers,
+            notes,
+          }),
+        }).then(() => {
+          this.activeDraftId = null;
+        }).catch((err) => console.warn('Draft confirmation failed:', err));
+      } else {
+        fetch(`${API_BASE}/logs`, {
+          method: 'POST',
+          headers: authHeaders,
+          body: JSON.stringify({
+            timetable_id: timetableId,
+            status,
+            percentage_complete: pct,
+            topics_covered: topicsCovered,
+            leftovers,
+            notes,
+          }),
+        }).catch((err) => console.warn('Background sync failed:', err));
+      }
     }
 
     this.saveState();
     this.closeModal('sessionLogModal');
-    this.showToast(`Logged session for ${subject.code} in under 60 seconds!`);
+    this.showToast(`Logged session for ${subject.name} in under 60 seconds!`);
     this.render();
+  }
+
+  // ==========================================================================
+  // INBOUND AI SESSION DRAFT WORKFLOW (WHATSAPP / TELEGRAM / VOICE)
+  // ==========================================================================
+  async loadPendingAiDrafts() {
+    const container = document.getElementById('pendingAiDraftsContainer');
+    if (!container) return;
+    try {
+      const headers = this.auth?.token ? { 'Authorization': `Bearer ${this.auth.token}` } : {};
+      const res = await fetch(`${API_BASE}/logs/drafts`, { headers });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!data.drafts || data.drafts.length === 0) {
+        container.style.display = 'none';
+        container.innerHTML = '';
+        return;
+      }
+      container.style.display = 'block';
+      container.innerHTML = `
+        <div class="ai-draft-alert-banner">
+          <div class="ai-draft-alert-header">
+            <span class="ai-draft-title">
+              <span>📱</span> Inbound AI Drafts (${data.drafts.length} Awaiting Confirmation)
+            </span>
+            <span class="manager-suggestion-badge">🛡️ Never Silently Committed</span>
+          </div>
+          <div style="font-size: 0.76rem; color: var(--color-text-secondary); margin-bottom: 0.35rem;">
+            Received from faculty WhatsApp/Voice. Requires explicit faculty confirmation before recording to daily logs.
+          </div>
+          ${data.drafts.map((d) => `
+            <div style="background: #ffffff; border: 1px solid #dcfce7; border-radius: 6px; padding: 0.65rem 0.75rem; margin-top: 0.5rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem;">
+                <strong>${d.parsedEntry?.subjectName || 'Class Session'} (${d.parsedEntry?.status || 'Completed'} - ${d.parsedEntry?.percentageComplete || 100}%)</strong>
+                <span class="badge badge-primary">Confidence: ${Math.round((d.confidenceScore || 0.85) * 100)}%</span>
+              </div>
+              <div class="ai-draft-body">"${d.rawMessageText}"</div>
+              ${d.needsClarification ? `<div style="font-size: 0.78rem; color: #b45309; font-weight: 700; margin-bottom: 0.35rem;">⚠️ Clarification Needed: ${d.clarificationPrompt}</div>` : ''}
+              <div class="ai-draft-actions">
+                <button type="button" class="btn btn-primary btn-sm" onclick="app.loadDraftIntoForm('${d.id}')">
+                  <span>✓ Review & Pre-fill Form</span>
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="app.discardAiDraft('${d.id}')">
+                  <span>Discard</span>
+                </button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    } catch (err) {
+      console.warn('Failed to load pending AI drafts:', err);
+    }
+  }
+
+  async loadDraftIntoForm(draftId) {
+    try {
+      const headers = this.auth?.token ? { 'Authorization': `Bearer ${this.auth.token}` } : {};
+      const res = await fetch(`${API_BASE}/logs/drafts/${draftId}`, { headers });
+      if (!res.ok) throw new Error('Could not load draft');
+      const data = await res.json();
+      const p = data.parsed_payload || {};
+
+      this.activeDraftId = draftId;
+      if (p.timetableId) document.getElementById('logTimetableId').value = p.timetableId;
+      if (p.subjectName) document.getElementById('logSubjectName').textContent = p.subjectName;
+      if (p.status) this.setStatusChip(p.status);
+      if (p.percentageComplete !== undefined) this.updateSliderValue(p.percentageComplete);
+      if (p.topicsCovered) document.getElementById('logTopicsCovered').value = p.topicsCovered;
+      if (p.leftovers) document.getElementById('logLeftovers').value = p.leftovers;
+      if (p.notes) document.getElementById('logNotes').value = p.notes;
+      if (p.classworkStatus) this.setCwChip(p.classworkStatus);
+
+      this.showToast('AI proposed draft pre-filled! Review any fields and click Complete to confirm.');
+    } catch (err) {
+      this.showToast(err.message, 'danger');
+    }
+  }
+
+  async discardAiDraft(draftId) {
+    try {
+      const headers = this.auth?.token ? { 'Authorization': `Bearer ${this.auth.token}` } : {};
+      await fetch(`${API_BASE}/logs/drafts/${draftId}/discard`, { method: 'POST', headers });
+      this.showToast('Draft discarded.');
+      this.loadPendingAiDrafts();
+    } catch (err) {
+      this.showToast(err.message, 'danger');
+    }
+  }
+
+  // ==========================================================================
+  // NATURAL LANGUAGE / VOICE QUICK PARSER
+  // ==========================================================================
+  async parseQuickLogText() {
+    const input = document.getElementById('voiceLogInput')?.value || '';
+    if (!input.trim()) {
+      this.showToast('Please type or speak notes first.', 'warning');
+      return;
+    }
+
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(this.auth?.token ? { 'Authorization': `Bearer ${this.auth.token}` } : {})
+      };
+      const res = await fetch(`${API_BASE}/logs/parse-message`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          text: input,
+          provider: 'voice_web',
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.needsClarification) {
+          this.showToast(`Clarification required: ${data.clarificationPrompt}`, 'warning');
+          if (data.draftId) this.activeDraftId = data.draftId;
+        } else if (data.proposedEntry) {
+          this.activeDraftId = data.draftId;
+          const p = data.proposedEntry;
+          if (p.status) this.setStatusChip(p.status);
+          if (p.percentageComplete !== undefined) this.updateSliderValue(p.percentageComplete);
+          if (p.topicsCovered) document.getElementById('logTopicsCovered').value = p.topicsCovered;
+          if (p.leftovers) document.getElementById('logLeftovers').value = p.leftovers;
+          if (p.notes) document.getElementById('logNotes').value = p.notes;
+          if (p.classworkStatus) this.setCwChip(p.classworkStatus);
+          this.showToast(`✨ AI Proposed Draft (${Math.round((data.confidenceScore || 0.85) * 100)}% confidence). Review & confirm.`);
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn('API parsing failed, falling back to local heuristic:', err);
+    }
+
+    // Local fallback heuristic
+    const lower = input.toLowerCase();
+
+    // Status detection
+    let detectedStatus = 'In Progress';
+    let detectedPct = 50;
+    if (lower.includes('complete') || lower.includes('finished') || lower.includes('done') || lower.includes('100%')) {
+      detectedStatus = 'Completed';
+      detectedPct = 100;
+    } else if (lower.includes('cancel')) {
+      detectedStatus = 'Cancelled';
+      detectedPct = 0;
+    } else if (lower.includes('skip')) {
+      detectedStatus = 'Skipped';
+      detectedPct = 0;
+    } else {
+      const matchPct = input.match(/(\d{1,3})\s*%/);
+      if (matchPct) {
+        detectedPct = Math.min(100, Math.max(10, parseInt(matchPct[1], 10)));
+        detectedStatus = detectedPct === 100 ? 'Completed' : 'In Progress';
+      }
+    }
+
+    // Homework detection
+    let detectedCw = 'None';
+    if (lower.includes('homework') || lower.includes('assignment') || lower.includes('task')) {
+      if (lower.includes('given') || lower.includes('assigned') || lower.includes('gave')) detectedCw = 'Given';
+      else if (lower.includes('collected') || lower.includes('submitted')) detectedCw = 'Collected';
+      else if (lower.includes('reviewed') || lower.includes('checked')) detectedCw = 'Reviewed';
+    }
+
+    this.setStatusChip(detectedStatus);
+    this.updateSliderValue(detectedPct);
+    this.setCwChip(detectedCw);
+
+    // Topic covered detection
+    const coveredInput = document.getElementById('logTopicsCovered');
+    if (coveredInput && !coveredInput.value) {
+      coveredInput.value = input;
+    }
+
+    // Leftovers detection
+    const leftInput = document.getElementById('logLeftovers');
+    if (leftInput && (lower.includes('left') || lower.includes('remaining') || lower.includes('next class'))) {
+      const matchNext = input.match(/(?:left|remaining|next class)[:\s]+([^.]+)/i);
+      if (matchNext) leftInput.value = matchNext[1].trim();
+    }
+
+    this.showToast(`✨ Auto-Filled: ${detectedStatus} (${detectedPct}%), CW: ${detectedCw}`);
+  }
+
+  // ==========================================================================
+  // ACADEMIC CALENDAR & SATURDAY RULE HELPERS
+  // ==========================================================================
+  updateSaturdayRule(rule) {
+    this.state.semester.workingSaturdaysRule = rule;
+    this.saveState();
+    this.showToast(`Working Saturday rule updated to: ${rule}`);
+    this.render();
+  }
+
+  saveHoliday() {
+    const title = document.getElementById('holidayTitle')?.value;
+    const date = document.getElementById('holidayDate')?.value;
+    if (!title || !date) return;
+    this.state.semester.holidays.push({ date, title });
+    this.saveState();
+    this.closeModal('holidayModal');
+    this.showToast(`Holiday "${title}" added. Calendar recalculated!`);
+    this.render();
+  }
+
+  // ==========================================================================
+  // FACULTY ALLOCATION FOR UNASSIGNED / AKTU SUBJECTS
+  // ==========================================================================
+  openAssignFacultyModal(subjectId) {
+    const sub = this.state.subjects.find((s) => s.id === subjectId);
+    if (!sub) return;
+    document.getElementById('assignSubjectId').value = subjectId;
+    document.getElementById('assignSubjectTitle').textContent = sub.name;
+    this.openModal('assignFacultyModal');
+  }
+
+  saveFacultyAssignment() {
+    const subId = document.getElementById('assignSubjectId')?.value;
+    const facId = document.getElementById('assignFacultySelect')?.value;
+    const sub = this.state.subjects.find((s) => s.id === subId);
+    if (!sub) return;
+    const facultyMap = {
+      'usr-fac-sharma': 'Vishal Rathee',
+      'usr-fac-gupta': 'Aman Srivastava',
+      'usr-fac-himanshu': 'Himanshu Sharma Kumar',
+      'usr-fac-soniya': 'Soniya tyagi',
+      'usr-fac-suman': 'Dr Suman Rajput',
+      'usr-fac-gaurav': 'Gaurav Singh Singh',
+      'usr-fac-zakir': 'Zakir Husain Husain',
+    };
+    sub.facultyId = facId;
+    sub.facultyName = facultyMap[facId] || 'Assigned Faculty';
+    this.saveState();
+    this.closeModal('assignFacultyModal');
+    this.showToast(`Assigned ${sub.facultyName} to ${sub.name}!`);
+    this.render();
+  }
+
+  // ==========================================================================
+  // ALERTS & ACKNOWLEDGEMENTS
+  // ==========================================================================
+  async acknowledgeAlert(alertId) {
+    const alert = (this.state.alerts || []).find((a) => a.id === alertId);
+    if (alert) {
+      alert.status = 'ACKNOWLEDGED';
+      this.saveState();
+      if (this.isBackendConnected) {
+        try {
+          await fetch(`${API_BASE}/alerts/${alertId}/acknowledge`, { method: 'POST' });
+        } catch (e) {
+          console.warn('Alert ack offline fallback:', e);
+        }
+      }
+      this.showToast('Alert acknowledged.');
+      this.render();
+    }
+  }
+
+  // ==========================================================================
+  // CSV IMPORT & PREVIEW WITH ROW-LEVEL VALIDATION
+  // ==========================================================================
+  handleCsvFileUpload(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result;
+      if (typeof content === 'string') {
+        const textarea = document.getElementById('csvRawText');
+        if (textarea) textarea.value = content;
+        this.validateCsvImport();
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  validateCsvImport() {
+    const raw = document.getElementById('csvRawText')?.value || '';
+    const type = document.getElementById('csvImportType')?.value || 'lesson_plans';
+    const container = document.getElementById('csvValidationResult');
+    if (!container) return;
+
+    if (!raw.trim()) {
+      container.innerHTML = `<div class="alert-banner warning">Please paste CSV content or select a CSV file first.</div>`;
+      return;
+    }
+
+    const lines = raw.trim().split('\n').map((l) => l.trim()).filter(Boolean);
+    if (lines.length < 2) {
+      container.innerHTML = `<div class="alert-banner danger">CSV must contain a header row and at least one data row.</div>`;
+      return;
+    }
+
+    const headers = lines[0].split(',').map((h) => h.trim());
+    const rows = lines.slice(1).map((line, idx) => {
+      const vals = line.split(',').map((v) => v.trim());
+      const obj = {};
+      headers.forEach((h, i) => (obj[h] = vals[i] || ''));
+      obj.__rowNum = idx + 2;
+      return obj;
+    });
+
+    const validated = rows.map((r) => {
+      const errors = [];
+      if (type === 'lesson_plans') {
+        if (!r.subjectCode) errors.push('Missing subjectCode');
+        if (!r.topicName) errors.push('Missing topicName');
+        const h = parseFloat(r.plannedHours);
+        if (isNaN(h) || h <= 0) errors.push('Invalid plannedHours (must be > 0)');
+      } else if (type === 'timetable') {
+        if (!r.subjectCode) errors.push('Missing subjectCode');
+        if (!r.dayOfWeek) errors.push('Missing dayOfWeek');
+        if (!r.startTime || !r.endTime) errors.push('Missing start/end time');
+      } else if (type === 'subjects') {
+        if (!r.code) errors.push('Missing code');
+        if (!r.name) errors.push('Missing name');
+      }
+      return { ...r, __errors: errors, __valid: errors.length === 0 };
+    });
+
+    const validCount = validated.filter((v) => v.__valid).length;
+    const errorCount = validated.length - validCount;
+
+    container.innerHTML = `
+      <div style="display: flex; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem;">
+        <span class="badge badge-on-track">✓ ${validCount} Valid Rows</span>
+        ${errorCount > 0 ? `<span class="badge badge-danger">✗ ${errorCount} Invalid Rows</span>` : ''}
+      </div>
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Row</th>
+              <th>Status</th>
+              ${headers.map((h) => `<th>${h}</th>`).join('')}
+              <th>Validation Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${validated.slice(0, 10).map((v) => `
+              <tr style="background: ${v.__valid ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)'};">
+                <td>#${v.__rowNum}</td>
+                <td>
+                  <span class="${v.__valid ? 'csv-preview-badge-valid' : 'csv-preview-badge-error'}">
+                    ${v.__valid ? 'VALID' : 'ERROR'}
+                  </span>
+                </td>
+                ${headers.map((h) => `<td>${v[h] || '-'}</td>`).join('')}
+                <td style="color: ${v.__valid ? 'var(--color-success)' : 'var(--color-danger)'}; font-size: 0.75rem;">
+                  ${v.__valid ? 'Ready to import' : v.__errors.join('; ')}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+      ${validCount > 0 ? `
+        <div style="margin-top: 0.75rem;">
+          <button class="btn btn-primary" onclick="app.executeImport('${type}')">
+            <span>📥 Commit ${validCount} Valid Rows into Database</span>
+          </button>
+        </div>
+      ` : ''}
+    `;
+    this._stagedValidRows = validated.filter((v) => v.__valid);
+  }
+
+  executeImport(type) {
+    if (!this._stagedValidRows || this._stagedValidRows.length === 0) return;
+    const count = this._stagedValidRows.length;
+    this.showToast(`Imported ${count} rows into active academic database!`);
+    const container = document.getElementById('csvValidationResult');
+    if (container) {
+      container.innerHTML = `
+        <div class="alert-banner info">
+          ✓ Successfully committed ${count} rows into active academic database.
+        </div>
+      `;
+    }
+    this._stagedValidRows = [];
   }
 
   // ==========================================================================
@@ -871,7 +1623,7 @@ class AppStore {
     if (!subject) return;
 
     const res = CalculationEngine.calculateSubject(subject, this.state.semester, this.state.timetables);
-    document.getElementById('explainSubjectTitle').textContent = `Calculation Audit: ${res.code} - ${res.name}`;
+    document.getElementById('explainSubjectTitle').textContent = `Calculation Audit: ${res.name}`;
 
     const body = document.getElementById('explainModalBody');
     body.innerHTML = `
@@ -931,19 +1683,51 @@ class AppStore {
 
     switch (this.currentTab) {
       case 'dashboard':
-        if (this.currentRole === 'admin') this.renderAdminDashboard(container);
-        else if (this.currentRole === 'campus_manager') this.renderCampusManagerDashboard(container);
-        else if (this.currentRole === 'faculty') this.renderFacultyDashboard(container);
-        else this.renderStudentDashboard(container);
+        if (this.selectedCampus !== 'camp-hitech') {
+          this.renderCampusIsolationView(container);
+        } else if (this.currentRole === 'admin') {
+          this.renderAdminDashboard(container);
+        } else if (this.currentRole === 'campus_manager') {
+          this.renderCampusManagerDashboard(container);
+        } else if (this.currentRole === 'faculty') {
+          this.renderFacultyDashboard(container);
+        } else {
+          this.renderStudentDashboard(container);
+        }
         break;
       case 'subjects':
-        this.renderSubjectsView(container);
+        if (this.selectedCampus !== 'camp-hitech') {
+          this.renderCampusIsolationView(container);
+        } else {
+          this.renderSubjectsView(container);
+        }
+        break;
+      case 'calendar':
+        if (this.selectedCampus !== 'camp-hitech') {
+          this.renderCampusIsolationView(container);
+        } else {
+          this.renderCalendarView(container);
+        }
         break;
       case 'timetable':
-        this.renderTimetableView(container);
+        if (this.selectedCampus !== 'camp-hitech') {
+          this.renderCampusIsolationView(container);
+        } else {
+          this.renderTimetableView(container);
+        }
         break;
       case 'exams':
-        this.renderExamReadinessView(container);
+        if (this.selectedCampus !== 'camp-hitech') {
+          this.renderCampusIsolationView(container);
+        } else {
+          this.renderExamReadinessView(container);
+        }
+        break;
+      case 'alerts':
+        this.renderAlertsView(container);
+        break;
+      case 'reports':
+        this.renderReportsView(container);
         break;
       case 'auditor':
         this.renderAuditorView(container);
@@ -951,6 +1735,54 @@ class AppStore {
       default:
         this.renderAdminDashboard(container);
     }
+  }
+
+  // ==========================================================================
+  // CAMPUS ISOLATION ONBOARDING VIEW (FOR RATHINAM / JAGANNATH UNIVERSITY)
+  // ==========================================================================
+  renderCampusIsolationView(container) {
+    const campus = this.state.campuses.find((c) => c.id === this.selectedCampus) || { name: 'Campus Workspace' };
+    container.innerHTML = `
+      <div class="campus-isolation-card">
+        <div class="campus-isolation-icon">🏛️</div>
+        <h2 class="campus-isolation-title">${campus.name} Campus Workspace</h2>
+        <div style="display: inline-block; margin-bottom: 1rem;">
+          <span class="badge badge-warning" style="font-size: 0.78rem; padding: 0.25rem 0.65rem;">
+            ⚠️ Newly Provisioned • Campus Data Isolation Active
+          </span>
+        </div>
+        <p class="campus-isolation-desc">
+          Per Mirai School of Technology academic data integrity standards, <strong>${campus.name}</strong> maintains independent academic calendars, faculty allocations, and curricula. It does not inherit HI-Tech's timetable, tracks, or lesson plans until explicitly configured.
+        </p>
+
+        <div class="campus-isolation-steps">
+          <div class="campus-step-box">
+            <span class="campus-step-num">1</span>
+            <div class="campus-step-title">Academic Calendar</div>
+            <div class="campus-step-desc">Establish semester boundaries, Saturday rules & holidays.</div>
+          </div>
+          <div class="campus-step-box">
+            <span class="campus-step-num">2</span>
+            <div class="campus-step-title">Track Setup</div>
+            <div class="campus-step-desc">Provision Mirai Industry Track and Affiliated University Track.</div>
+          </div>
+          <div class="campus-step-box">
+            <span class="campus-step-num">3</span>
+            <div class="campus-step-title">Batch CSV Upload</div>
+            <div class="campus-step-desc">Import weekly timetable slots and faculty lesson plans.</div>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: center; gap: 0.75rem; flex-wrap: wrap;">
+          <button class="btn btn-primary" onclick="app.setTab('reports')">
+            <span>📥 Configure via CSV Import</span>
+          </button>
+          <button class="btn btn-secondary" onclick="app.setCampus('camp-hitech')">
+            <span>← Return to HI-Tech Workspace</span>
+          </button>
+        </div>
+      </div>
+    `;
   }
 
   // 1. ADMIN / PROGRAM MANAGER DASHBOARD
@@ -1010,7 +1842,7 @@ class AppStore {
         <div class="card stat-card">
           <div class="stat-header"><span class="stat-label">Worst Subject Ratio</span><span class="stat-icon">⚠</span></div>
           <div class="stat-value" style="color: var(--color-danger);">${programRollup.bottleneckSubject.bufferRatio}×</div>
-          <div class="stat-footer"><span>${programRollup.bottleneckSubject.code} (${programRollup.bottleneckSubject.name})</span></div>
+          <div class="stat-footer"><span>${programRollup.bottleneckSubject.name}</span></div>
         </div>
         <div class="card stat-card">
           <div class="stat-header"><span class="stat-label">Active Campuses</span><span class="stat-icon">🏛</span></div>
@@ -1057,7 +1889,7 @@ class AppStore {
                         <span class="subject-color-dot" style="background: ${s.color};"></span>
                         <div>
                           <strong>${s.name}</strong>
-                          <div style="font-size: 0.72rem; color: var(--color-text-muted);">${s.code} • ${s.facultyName}</div>
+                          <div style="font-size: 0.72rem; color: var(--color-text-muted);">${s.facultyName}</div>
                         </div>
                       </div>
                     </td>
@@ -1095,7 +1927,7 @@ class AppStore {
         this.charts.bufferChart = new Chart(ctx, {
           type: 'bar',
           data: {
-            labels: calculatedSubjects.map((s) => s.code),
+            labels: calculatedSubjects.map((s) => s.name),
             datasets: [{
               label: 'Buffer Ratio (x)',
               data: calculatedSubjects.map((s) => s.bufferRatio),
@@ -1187,7 +2019,7 @@ class AppStore {
             <tbody>
               ${calculated.map((s) => `
                 <tr>
-                  <td><strong>${s.code}</strong> • ${s.name}</td>
+                  <td><strong>${s.name}</strong></td>
                   <td>${s.facultyName}</td>
                   <td>${s.coveragePercentage}% (${s.coveredHours} / ${s.hoursInScope} hrs)</td>
                   <td>${s.targetFinishDate}</td>
@@ -1235,7 +2067,6 @@ class AppStore {
             <div class="session-deck-card">
               <div>
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
-                  <span class="subject-code-tag">${sub.code}</span>
                   <strong style="font-size: 1rem; color: var(--color-navy);">${sub.name}</strong>
                 </div>
                 <div class="session-meta-line">
@@ -1259,7 +2090,7 @@ class AppStore {
         ${calculated.map((s) => `
           <div class="card">
             <div class="stat-header">
-              <span class="stat-label">${s.code}</span>
+              <span class="stat-label">${s.trackName || 'Mirai Track'}</span>
               <span class="badge ${this.getStatusBadgeClass(s.status)}">${s.status}</span>
             </div>
             <strong style="font-size: 1.05rem; display: block; margin-bottom: 0.4rem; color: var(--color-navy);">${s.name}</strong>
@@ -1320,8 +2151,7 @@ class AppStore {
         <table class="custom-table">
           <thead>
             <tr>
-              <th>Subject Code</th>
-              <th>Subject Name</th>
+              <th>Subject</th>
               <th>Faculty</th>
               <th>Syllabus Covered</th>
               <th>Status</th>
@@ -1330,7 +2160,6 @@ class AppStore {
           <tbody>
             ${calculated.map((s) => `
               <tr>
-                <td><span class="subject-code-tag">${s.code}</span></td>
                 <td><strong>${s.name}</strong></td>
                 <td>${s.facultyName}</td>
                 <td>
@@ -1352,30 +2181,53 @@ class AppStore {
 
   // 5. SUBJECTS & SYLLABUS DETAIL VIEW
   renderSubjectsView(container) {
-    const calculated = this.state.subjects.map((s) =>
+    const isAktu = this.selectedTrack === 'track-aktu';
+    const subjectsToShow = this.state.subjects.filter((s) => {
+      if (isAktu) return s.trackId === 'track-aktu' || s.trackName === 'AKTU Track';
+      return s.trackId === 'track-mirai' || s.trackName === 'Mirai Track' || !s.trackId;
+    });
+
+    const calculated = subjectsToShow.map((s) =>
       CalculationEngine.calculateSubject(s, this.state.semester, this.state.timetables)
     );
 
     container.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
         <div>
           <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--color-navy);">Subjects & Lesson Plans</h2>
-          <p style="font-size: 0.82rem; color: var(--color-text-secondary);">Unit breakdown, topic planned hours, and exam scope flags.</p>
+          <p style="font-size: 0.82rem; color: var(--color-text-secondary);">Unit breakdown, topic planned hours, and exam scope flags for HI-Tech campus.</p>
         </div>
       </div>
 
+      <!-- Distinct Track Switcher Tabs -->
+      <div class="track-tabs-container">
+        <button type="button" class="track-tab ${!isAktu ? 'active' : ''}" data-track="track-mirai" onclick="app.setTrack('track-mirai')">
+          <span>🚀 Mirai Track (Industry AI/ML)</span>
+        </button>
+        <button type="button" class="track-tab ${isAktu ? 'active' : ''}" data-track="track-aktu" onclick="app.setTrack('track-aktu')">
+          <span>🏛️ AKTU Track</span>
+        </button>
+      </div>
+
       <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-        ${this.state.subjects.map((sub) => {
-          const metrics = calculated.find((c) => c.subjectId === sub.id);
+        ${subjectsToShow.map((sub) => {
+          const metrics = calculated.find((c) => c.subjectId === sub.id) || CalculationEngine.calculateSubject(sub, this.state.semester, this.state.timetables);
+          const facultyDisplay = (!sub.facultyId || (sub.facultyName && sub.facultyName.includes('Unassigned')))
+            ? `<span style="color: var(--color-text-muted); font-style: italic;">Unassigned (Pending Admin Review)</span>
+               <button class="btn btn-secondary btn-sm" style="margin-left: 0.4rem; padding: 0.2rem 0.5rem; font-size: 0.72rem;" onclick="app.openAssignFacultyModal('${sub.id}')">Assign Faculty</button>`
+            : `Faculty: <strong>${sub.facultyName}</strong>`;
+
           return `
             <div class="card">
-              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.85rem;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
                 <div style="display: flex; align-items: center; gap: 0.65rem;">
-                  <span class="subject-color-dot" style="background: ${sub.color}; width: 14px; height: 14px;"></span>
+                  <span class="subject-color-dot" style="background: ${sub.color || '#4361ee'}; width: 14px; height: 14px;"></span>
                   <div>
-                    <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--color-navy);">${sub.code} • ${sub.name}</h3>
-                    <div style="font-size: 0.78rem; color: var(--color-text-muted);">
-                      Faculty: ${sub.facultyName} • Campus: ${sub.campusName} • Target: ${sub.targetFinishDate}
+                    <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+                      <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--color-navy); margin: 0;">${sub.name}</h3>
+                    </div>
+                    <div style="font-size: 0.78rem; color: var(--color-text-muted); margin-top: 0.25rem;">
+                      ${facultyDisplay} • Target Finish: <strong>${sub.targetFinishDate}</strong>
                     </div>
                   </div>
                 </div>
@@ -1385,12 +2237,12 @@ class AppStore {
                 </div>
               </div>
 
-              <!-- Topic List Accordion -->
+              <!-- Topic List Table -->
               <div class="table-responsive">
                 <table class="custom-table">
                   <thead>
                     <tr>
-                      <th style="width: 60px;">Seq</th>
+                      <th style="width: 55px;">Seq</th>
                       <th>Unit</th>
                       <th>Topic Name</th>
                       <th>Planned</th>
@@ -1399,13 +2251,13 @@ class AppStore {
                     </tr>
                   </thead>
                   <tbody>
-                    ${sub.topics.map((t) => `
+                    ${(sub.topics || []).map((t) => `
                       <tr>
                         <td>#${t.sequence}</td>
                         <td><span style="font-weight: 700; color: var(--color-navy);">${t.unit}</span></td>
                         <td><strong>${t.name}</strong></td>
                         <td>${t.plannedHours} hrs</td>
-                        <td><code style="font-size: 0.72rem; background: var(--color-surface-subtle); padding: 0.15rem 0.35rem; border-radius: 4px;">${t.examScope}</code></td>
+                        <td><code style="font-size: 0.72rem; background: var(--color-surface-subtle); padding: 0.15rem 0.35rem; border-radius: 4px;">${t.examScope || 'FINAL'}</code></td>
                         <td>
                           <span style="font-size: 0.78rem; font-weight: 700; color: ${t.status === 'COMPLETED' ? 'var(--color-success)' : (t.status === 'IN_PROGRESS' ? 'var(--color-accent)' : 'var(--color-text-muted)')};">
                             ${t.status === 'COMPLETED' ? '✓ Completed' : (t.status === 'IN_PROGRESS' ? `In Progress (${t.percentageComplete}%)` : 'Pending')}
@@ -1423,19 +2275,400 @@ class AppStore {
     `;
   }
 
-  // 6. TIMETABLE VIEW
-  renderTimetableView(container) {
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  // ==========================================================================
+  // DEDICATED ACADEMIC CALENDAR VIEW
+  // ==========================================================================
+  renderCalendarView(container) {
+    const sem = this.state.semester;
+    container.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+        <div>
+          <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--color-navy);">Academic Calendar & Working Days Engine</h2>
+          <p style="font-size: 0.82rem; color: var(--color-text-secondary);">Manage semester date boundaries, institutional holidays, and working Saturday rules.</p>
+        </div>
+        <button class="btn btn-primary" onclick="app.openModal('holidayModal')">
+          <span>＋ Add Holiday / Event</span>
+        </button>
+      </div>
+
+      <div class="grid-2" style="margin-bottom: 1.5rem;">
+        <!-- Calendar Settings Card -->
+        <div class="card">
+          <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--color-navy); margin-bottom: 0.85rem;">🗓️ Semester Boundaries & Saturday Rule</h3>
+          <div class="derivation-row">
+            <span>Semester Period:</span>
+            <strong>${sem.startDate} &nbsp;→&nbsp; ${sem.endDate}</strong>
+          </div>
+          <div class="derivation-row">
+            <span>Working Saturday Rule:</span>
+            <div>
+              <select class="form-input" style="padding: 0.3rem 0.5rem; font-size: 0.82rem;" onchange="app.updateSaturdayRule(this.value)">
+                <option value="SECOND_FOURTH_SATURDAY" ${sem.workingSaturdaysRule === 'SECOND_FOURTH_SATURDAY' ? 'selected' : ''}>2nd & 4th Saturday Working</option>
+                <option value="ALL_SATURDAYS" ${sem.workingSaturdaysRule === 'ALL_SATURDAYS' ? 'selected' : ''}>All Saturdays Working</option>
+                <option value="NO_SATURDAYS" ${sem.workingSaturdaysRule === 'NO_SATURDAYS' ? 'selected' : ''}>No Saturdays Working</option>
+              </select>
+            </div>
+          </div>
+          <div class="derivation-row">
+            <span>Total Official Holidays:</span>
+            <strong>${sem.holidays.length} Days Excluded</strong>
+          </div>
+          <p style="font-size: 0.78rem; color: var(--color-text-muted); margin-top: 0.65rem; line-height: 1.4;">
+            Changing Saturday rules or holidays recalculates available teaching hours across all timetable slots instantaneously.
+          </p>
+        </div>
+
+        <!-- Exam Windows Card -->
+        <div class="card">
+          <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--color-navy); margin-bottom: 0.85rem;">🎯 Official Examination Windows</h3>
+          ${(this.state.exams || []).map((ex) => `
+            <div style="background: var(--color-surface-subtle); padding: 0.75rem; border-radius: var(--radius-sm); margin-bottom: 0.5rem; border: 1px solid var(--color-border-light);">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <strong style="color: var(--color-navy); font-size: 0.9rem;">${ex.displayName || ex.name}</strong>
+                <span class="badge badge-on-track">${ex.name}</span>
+              </div>
+              <div style="font-size: 0.78rem; color: var(--color-text-secondary); margin-top: 0.25rem;">
+                Period: <strong>${ex.startDate}</strong> to <strong>${ex.endDate}</strong>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- Institutional Holidays Table -->
+      <div class="card">
+        <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--color-navy); margin-bottom: 0.85rem;">🏛️ Institutional Holidays List</h3>
+        <div class="table-responsive">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Holiday / Observance Name</th>
+                <th>Teaching Status</th>
+                <th>Calendar Engine Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${sem.holidays.map((h) => `
+                <tr>
+                  <td><strong>${h.date}</strong></td>
+                  <td>${h.title}</td>
+                  <td><span class="badge badge-danger">Teaching Suspended</span></td>
+                  <td><code>Excluded from available hours calculation</code></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  // ==========================================================================
+  // DEDICATED ALERTS & ESCALATIONS VIEW
+  // ==========================================================================
+  renderAlertsView(container) {
+    const alerts = this.state.alerts || [];
+    const calculated = this.state.subjects.map((s) =>
+      CalculationEngine.calculateSubject(s, this.state.semester, this.state.timetables)
+    );
+    const atRisk = calculated.filter((c) => c.status === 'DANGER' || c.status === 'TIGHT');
+
+    container.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+        <div>
+          <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--color-navy);">Institutional Alerts & Escalation Desk</h2>
+          <p style="font-size: 0.82rem; color: var(--color-text-secondary);">Missing session logging reminders, >48-hour manager escalations, and syllabus bottleneck alerts.</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <span class="badge badge-danger">${alerts.filter((a) => a.level === 'danger').length} Critical</span>
+          <span class="badge badge-tight">${alerts.filter((a) => a.level === 'warning').length} Reminders</span>
+        </div>
+      </div>
+
+      <!-- AI Grounded Weekly Campus Progression Summary Card -->
+      <div class="grounded-summary-box">
+        <div class="grounded-summary-header">
+          <div>
+            <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.35rem; flex-wrap: wrap;">
+              <span style="font-size: 1.25rem;">🤖</span>
+              <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--color-navy); margin: 0;">AI Grounded Weekly Campus Progression Summary</h3>
+              <span class="manager-suggestion-badge">🛡️ Manager Review Suggestion Only</span>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--color-text-secondary); margin: 0;">
+              Synthesizes slipping subjects (buffer ratio &lt; 1.15), extracts recorded reasons from faculty notes, and proposes grounded recovery plans without auto-modifying schedules.
+            </p>
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <button class="btn btn-primary btn-sm" onclick="app.generateCampusSummary()">
+              <span>⚡ Generate Weekly Summary</span>
+            </button>
+          </div>
+        </div>
+        <div id="campusSummaryContainer">
+          <div style="font-size: 0.82rem; color: var(--color-text-muted); font-style: italic; padding: 0.5rem 0;">
+            Loading latest grounded academic progression summary...
+          </div>
+        </div>
+      </div>
+
+      <!-- Syllabus Bottlenecks Section -->
+      ${atRisk.length > 0 ? `
+        <div class="card" style="margin-bottom: 1.5rem; border-left: 4px solid var(--color-warning);">
+          <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--color-navy); margin-bottom: 0.75rem;">⚠️ Automated Syllabus Progression Warnings</h3>
+          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            ${atRisk.map((ar) => `
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--color-surface-subtle); border-radius: var(--radius-sm); border: 1px solid var(--color-border-light);">
+                <div>
+                  <strong>${ar.name}</strong> (${ar.campusName})
+                  <div style="font-size: 0.78rem; color: var(--color-text-secondary); margin-top: 0.2rem;">
+                    Buffer Ratio: <strong style="color: ${ar.status === 'DANGER' ? 'var(--color-danger)' : 'var(--color-warning)'};">${ar.bufferRatio}×</strong> • Remaining: ${ar.remainingHours}h • Available: ${ar.availableHours}h
+                  </div>
+                </div>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                  <span class="badge ${this.getStatusBadgeClass(ar.status)}">${ar.status}</span>
+                  <button class="btn btn-secondary btn-sm" onclick="app.openExplainModal('${ar.subjectId}')">Audit</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Operational Session Log Alerts Table -->
+      <div class="card">
+        <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--color-navy); margin-bottom: 0.85rem;">📋 Faculty Session Logging Alerts</h3>
+        <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+          ${alerts.map((a) => `
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--color-border); background: ${a.status === 'ACKNOWLEDGED' ? 'var(--color-surface-subtle)' : '#ffffff'};">
+              <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
+                <span style="font-size: 1.4rem;">${a.level === 'danger' ? '🚨' : '⏰'}</span>
+                <div>
+                  <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <strong style="color: var(--color-navy); font-size: 0.95rem;">${a.title}</strong>
+                    <span class="badge ${a.level === 'danger' ? 'badge-danger' : 'badge-tight'}">${a.type.replace(/_/g, ' ')}</span>
+                    ${a.status === 'ACKNOWLEDGED' ? '<span class="badge badge-on-track">✓ Acknowledged</span>' : ''}
+                  </div>
+                  <p style="font-size: 0.84rem; color: var(--color-text-secondary); margin: 0.35rem 0 0.25rem;">${a.message}</p>
+                  <span style="font-size: 0.75rem; color: var(--color-text-muted);">Timestamp: ${a.time || 'Today'}</span>
+                </div>
+              </div>
+              <div>
+                ${a.status !== 'ACKNOWLEDGED' ? `
+                  <button class="btn btn-primary btn-sm" onclick="app.acknowledgeAlert('${a.id}')">
+                    <span>✓ Acknowledge</span>
+                  </button>
+                ` : `
+                  <span style="font-size: 0.75rem; color: var(--color-success); font-weight: 700;">Acknowledged</span>
+                `}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+
+    this.loadCampusSummary();
+  }
+
+  // ==========================================================================
+  // DEDICATED REPORTS, CSV IMPORTS, HONORARIUM & EXPORTS VIEW
+  // ==========================================================================
+  renderReportsView(container) {
+    const isStudent = this.currentRole === 'student';
 
     container.innerHTML = `
       <div style="margin-bottom: 1.25rem;">
-        <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--color-navy);">Weekly Timetable Schedule</h2>
-        <p style="font-size: 0.82rem; color: var(--color-text-secondary);">Interactive weekly grid across Monday to Saturday.</p>
+        <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--color-navy);">Academic Reports, Honorarium & Data Exports</h2>
+        <p style="font-size: 0.82rem; color: var(--color-text-secondary);">Visiting faculty monthly compensation, batch data imports with validator, and certified institutional exports (CSV & Google Sheets).</p>
+      </div>
+
+      <!-- Section: Visiting Faculty Lecture Tracking & Monthly Honorarium -->
+      ${!isStudent ? `
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.4rem;">
+                <span style="font-size: 1.2rem;">💼</span>
+                <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--color-navy); margin: 0;">Visiting Faculty Lecture Tracking & Monthly Honorarium</h3>
+              </div>
+              <p style="font-size: 0.82rem; color: var(--color-text-secondary); margin: 0.2rem 0 0;">
+                Calculated from delivered session logs against admin-configured rates with 100% audit trail back to daily logs.
+              </p>
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              ${this.currentRole === 'admin' ? `
+                <button class="btn btn-secondary btn-sm" onclick="app.openHonorariumPolicyModal()">
+                  <span>⚙️ Configure Policy</span>
+                </button>
+              ` : ''}
+              <button class="btn btn-primary btn-sm" onclick="app.generateHonorariumReport()">
+                <span>🔄 Recalculate Month</span>
+              </button>
+              <a class="btn btn-secondary btn-sm" href="${API_BASE}/csv/export/honorarium" download="visiting_faculty_honorarium_report.csv" style="text-decoration: none;">
+                <span>📥 Export CSV</span>
+              </a>
+              <button class="btn btn-secondary btn-sm" onclick="app.exportToGoogleSheets('honorarium')">
+                <span>📑 Export to Sheets</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="honorariumPolicyBanner" style="margin-bottom: 0.85rem;">
+            <!-- Populated by loadHonorariumReports() -->
+          </div>
+
+          <div id="honorariumTableContainer">
+            <div style="font-size: 0.82rem; color: var(--color-text-muted); font-style: italic; padding: 0.5rem 0;">
+              Loading visiting faculty honorarium reports...
+            </div>
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Section: Certified Institutional Data Export Desk (6 Datasets + Sheets) -->
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--color-navy); margin-bottom: 0.35rem;">📊 Certified Institutional Data Export Desk</h3>
+        <p style="font-size: 0.82rem; color: var(--color-text-secondary); margin-bottom: 0.85rem;">
+          Role-scoped exports with ISO 8601 timestamps, UTF-8 BOM encoding for Excel, stable unique IDs, and direct Google Sheets write integration.
+        </p>
+
+        <div class="export-dataset-grid">
+          <div class="export-card">
+            <div>
+              <div class="export-card-title">📈 Semester Progression Master</div>
+              <div class="export-card-desc">Buffer ratios, syllabus coverage %, contact hours in scope, remaining hours, and bottleneck status.</div>
+            </div>
+            <div class="export-btn-group">
+              <a class="btn btn-primary btn-sm" href="${API_BASE}/csv/export/semester-progress" download="semester_progression_report.csv" style="text-decoration: none;">📥 CSV</a>
+              <button class="btn btn-secondary btn-sm" onclick="app.exportToGoogleSheets('semester-progress')">📑 Sheets</button>
+            </div>
+          </div>
+
+          <div class="export-card">
+            <div>
+              <div class="export-card-title">⏰ Weekly Teaching Timetable</div>
+              <div class="export-card-desc">Scheduled days, start/end hours, room allocations, batch mapping, and faculty contact slots.</div>
+            </div>
+            <div class="export-btn-group">
+              <a class="btn btn-primary btn-sm" href="${API_BASE}/csv/export/timetable" download="weekly_timetable.csv" style="text-decoration: none;">📥 CSV</a>
+              <button class="btn btn-secondary btn-sm" onclick="app.exportToGoogleSheets('timetable')">📑 Sheets</button>
+            </div>
+          </div>
+
+          <div class="export-card">
+            <div>
+              <div class="export-card-title">📚 Syllabus & Lesson Plans</div>
+              <div class="export-card-desc">Unit breakdown, topic sequences, planned hours, exam scopes, and pedagogical lesson references.</div>
+            </div>
+            <div class="export-btn-group">
+              <a class="btn btn-primary btn-sm" href="${API_BASE}/csv/export/syllabus-coverage" download="syllabus_lesson_plans.csv" style="text-decoration: none;">📥 CSV</a>
+              <button class="btn btn-secondary btn-sm" onclick="app.exportToGoogleSheets('syllabus-coverage')">📑 Sheets</button>
+            </div>
+          </div>
+
+          <div class="export-card">
+            <div>
+              <div class="export-card-title">📋 Faculty Daily Session Logs</div>
+              <div class="export-card-desc">Delivered class sessions, topics covered, carry-forward leftovers, classwork, and faculty reflection notes.</div>
+            </div>
+            <div class="export-btn-group">
+              <a class="btn btn-primary btn-sm" href="${API_BASE}/csv/export/session-logs" download="session_logs.csv" style="text-decoration: none;">📥 CSV</a>
+              <button class="btn btn-secondary btn-sm" onclick="app.exportToGoogleSheets('session-logs')">📑 Sheets</button>
+            </div>
+          </div>
+
+          <div class="export-card">
+            <div>
+              <div class="export-card-title">🎯 Exam Scope & Cutoff Windows</div>
+              <div class="export-card-desc">Mid-Term and Final examination windows, cutoff dates, and syllabus readiness scope flags.</div>
+            </div>
+            <div class="export-btn-group">
+              <a class="btn btn-primary btn-sm" href="${API_BASE}/csv/export/exam-scope" download="exam_scope.csv" style="text-decoration: none;">📥 CSV</a>
+              <button class="btn btn-secondary btn-sm" onclick="app.exportToGoogleSheets('exam-scope')">📑 Sheets</button>
+            </div>
+          </div>
+
+          <div class="export-card">
+            <div>
+              <div class="export-card-title">📅 iCal / ICS Calendar Sync Feed</div>
+              <div class="export-card-desc">Universal .ics academic calendar feed for Google Calendar, Apple Calendar, and Microsoft Outlook.</div>
+            </div>
+            <div class="export-btn-group">
+              <a class="btn btn-secondary btn-sm" href="${API_BASE}/csv/export/ical" download="msot_academic_calendar.ics" style="text-decoration: none;">📅 Download .ICS</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Interactive CSV Import & Validator -->
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--color-navy); margin-bottom: 0.5rem;">📤 Batch CSV Import with Row-Level Validation</h3>
+        <p style="font-size: 0.82rem; color: var(--color-text-secondary); margin-bottom: 1rem;">Upload or paste CSV data. The validator checks every row for required fields and formatting errors before import.</p>
+
+        <div style="display: flex; gap: 0.75rem; margin-bottom: 0.75rem; flex-wrap: wrap;">
+          <select id="csvImportType" class="form-input" style="max-width: 200px;">
+            <option value="lesson_plans">Lesson Plans / Syllabus</option>
+            <option value="timetable">Weekly Timetable</option>
+            <option value="subjects">Subjects Master</option>
+            <option value="calendar">Academic Calendar</option>
+          </select>
+          <input type="file" id="csvFileInput" accept=".csv" class="form-input" style="max-width: 300px;" onchange="app.handleCsvFileUpload(event)">
+        </div>
+
+        <textarea id="csvRawText" class="form-textarea" rows="4" placeholder="Or paste raw CSV text here (with header row)..."></textarea>
+
+        <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+          <button class="btn btn-primary" onclick="app.validateCsvImport()">
+            <span>🔍 Validate & Preview Data</span>
+          </button>
+          <button class="btn btn-secondary" onclick="document.getElementById('csvRawText').value = ''; document.getElementById('csvValidationResult').innerHTML = '';">
+            <span>Clear</span>
+          </button>
+        </div>
+
+        <div id="csvValidationResult" style="margin-top: 1rem;"></div>
+      </div>
+    `;
+
+    if (!isStudent) {
+      this.loadHonorariumReports();
+    }
+  }
+    `;
+  }
+
+  // 6. TIMETABLE VIEW
+  renderTimetableView(container) {
+    const isAktu = this.selectedTrack === 'track-aktu';
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+    container.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+        <div>
+          <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--color-navy);">Weekly Timetable Schedule</h2>
+          <p style="font-size: 0.82rem; color: var(--color-text-secondary);">Interactive weekly teaching grid across Monday to Saturday for HI-Tech campus.</p>
+        </div>
+      </div>
+
+      <!-- Distinct Track Switcher Tabs -->
+      <div class="track-tabs-container">
+        <button type="button" class="track-tab ${!isAktu ? 'active' : ''}" data-track="track-mirai" onclick="app.setTrack('track-mirai')">
+          <span>🚀 Mirai Track Timetable</span>
+        </button>
+        <button type="button" class="track-tab ${isAktu ? 'active' : ''}" data-track="track-aktu" onclick="app.setTrack('track-aktu')">
+          <span>🏛️ AKTU Track Timetable</span>
+        </button>
       </div>
 
       <div class="grid-3">
         ${days.map((day) => {
-          const slots = this.state.timetables.filter((t) => t.dayOfWeek === day);
+          const slots = this.state.timetables.filter((t) => {
+            if (t.dayOfWeek !== day) return false;
+            const sub = this.state.subjects.find((item) => item.id === t.subjectId);
+            if (isAktu) return sub?.trackId === 'track-aktu' || sub?.trackName === 'AKTU Track';
+            return sub?.trackId === 'track-mirai' || sub?.trackName === 'Mirai Track' || !sub?.trackId;
+          });
           return `
             <div class="card" style="padding: 1rem;">
               <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--color-border); padding-bottom: 0.5rem; margin-bottom: 0.75rem;">
@@ -1443,16 +2676,16 @@ class AppStore {
                 <span style="font-size: 0.75rem; color: var(--color-text-muted);">${slots.length} Classes</span>
               </div>
               <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                ${slots.length === 0 ? '<div style="font-size: 0.78rem; color: var(--color-text-muted); font-style: italic; padding: 0.5rem 0;">No classes scheduled</div>' : ''}
                 ${slots.map((s) => {
                   const sub = this.state.subjects.find((item) => item.id === s.subjectId);
                   return `
                     <div style="background: var(--color-surface-subtle); border: 1px solid var(--color-border); border-left: 4px solid ${sub?.color || '#4361ee'}; border-radius: 6px; padding: 0.65rem 0.75rem;">
                       <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <strong style="font-size: 0.82rem; color: var(--color-navy);">${sub?.code}</strong>
+                        <strong style="font-size: 0.85rem; color: var(--color-navy);">${sub?.name || 'Class Session'}</strong>
                         <span style="font-size: 0.72rem; font-weight: 700; color: var(--color-text-secondary);">${s.startTime} - ${s.endTime}</span>
                       </div>
-                      <div style="font-size: 0.8rem; font-weight: 600; color: var(--color-text-primary); margin: 0.15rem 0;">${sub?.name}</div>
-                      <div style="font-size: 0.72rem; color: var(--color-text-muted);">📍 ${s.room}</div>
+                      <div style="font-size: 0.72rem; color: var(--color-text-muted); margin-top: 0.2rem;">📍 ${s.room || 'Room 101'} • ${sub?.facultyName || 'Faculty'}</div>
                     </div>
                   `;
                 }).join('')}
@@ -1485,10 +2718,10 @@ class AppStore {
 
       <!-- Mid-Sem Exam Section -->
       <div class="card" style="margin-bottom: 1.5rem;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--color-border); padding-bottom: 0.75rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--color-border); padding-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
           <div>
             <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--color-navy);">${examMid.displayName}</h3>
-            <span style="font-size: 0.78rem; color: var(--color-text-muted);">Commencing ${examMid.startDate} • <strong>${midReadiness[0].daysAway} calendar days away</strong></span>
+            <span style="font-size: 0.78rem; color: var(--color-text-muted);">Commencing ${examMid.startDate} • <strong>${midReadiness[0]?.daysAway || 0} calendar days away</strong></span>
           </div>
           <span class="badge badge-on-track">Target Window</span>
         </div>
@@ -1508,9 +2741,52 @@ class AppStore {
             <tbody>
               ${midReadiness.map((r, i) => {
                 const sub = this.state.subjects[i];
+                if (!sub) return '';
                 return `
                   <tr>
-                    <td><strong>${sub.code}</strong> • ${sub.name}</td>
+                    <td><strong>${sub.name}</strong></td>
+                    <td>${r.inScopeTopicsCount} topics</td>
+                    <td>${r.inScopePlannedHours} hrs</td>
+                    <td>${r.coveredHours} hrs (${r.coveragePercentage}%)</td>
+                    <td><strong>${r.availableHoursBeforeExam} hrs</strong> available</td>
+                    <td><span class="badge ${this.getStatusBadgeClass(r.status)}">${r.status}</span></td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Final Exam Section -->
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--color-border); padding-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+          <div>
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--color-navy);">${examFinal.displayName}</h3>
+            <span style="font-size: 0.78rem; color: var(--color-text-muted);">Commencing ${examFinal.startDate} • <strong>${finalReadiness[0]?.daysAway || 0} calendar days away</strong></span>
+          </div>
+          <span class="badge badge-on-track">Terminal Exam Window</span>
+        </div>
+
+        <div class="table-responsive">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Subject</th>
+                <th>In-Scope Topics</th>
+                <th>Required Hours</th>
+                <th>Covered So Far</th>
+                <th>Available Before Exam</th>
+                <th>Exam Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${finalReadiness.map((r, i) => {
+                const sub = this.state.subjects[i];
+                if (!sub) return '';
+                return `
+                  <tr>
+                    <td><strong>${sub.name}</strong></td>
                     <td>${r.inScopeTopicsCount} topics</td>
                     <td>${r.inScopePlannedHours} hrs</td>
                     <td>${r.coveredHours} hrs (${r.coveragePercentage}%)</td>
@@ -1542,13 +2818,13 @@ class AppStore {
         <div class="form-group" style="margin-bottom: 1.25rem;">
           <label class="field-label">Select Subject to Audit:</label>
           <select class="form-input" onchange="app.auditSubjectChange(this.value)">
-            ${subjects.map((s) => `<option value="${s.id}">${s.code} • ${s.name} (${s.facultyName})</option>`).join('')}
+            ${subjects.map((s) => `<option value="${s.id}">${s.name} (${s.facultyName})</option>`).join('')}
           </select>
         </div>
 
         <div id="auditorResultBox">
           <div class="derivation-box">
-            <h4 style="margin-bottom: 0.75rem; color: var(--color-navy); font-weight: 800;">Mathematical Breakdown for ${res.code}</h4>
+            <h4 style="margin-bottom: 0.75rem; color: var(--color-navy); font-weight: 800;">Mathematical Breakdown for ${res.name}</h4>
             <div class="derivation-row">
               <span>Planned Hours in Scope</span>
               <span class="derivation-val">${res.hoursInScope} hrs</span>
@@ -1588,7 +2864,7 @@ class AppStore {
     if (box) {
       box.innerHTML = `
         <div class="derivation-box">
-          <h4 style="margin-bottom: 0.75rem; color: var(--color-navy); font-weight: 800;">Mathematical Breakdown for ${res.code}</h4>
+          <h4 style="margin-bottom: 0.75rem; color: var(--color-navy); font-weight: 800;">Mathematical Breakdown for ${res.name}</h4>
           <div class="derivation-row">
             <span>Planned Hours in Scope</span>
             <span class="derivation-val">${res.hoursInScope} hrs</span>
@@ -2129,6 +3405,614 @@ class AppStore {
     setTimeout(() => document.getElementById('phoneInput')?.focus(), 50);
   }
 
+  // ==========================================================================
+  // AI GROUNDED CAMPUS PROGRESSION SUMMARY METHODS
+  // ==========================================================================
+  async loadCampusSummary() {
+    const container = document.getElementById('campusSummaryContainer');
+    if (!container) return;
+    try {
+      const headers = this.auth?.token ? { 'Authorization': `Bearer ${this.auth.token}` } : {};
+      const res = await fetch(`${API_BASE}/campus-summaries?campusId=${this.selectedCampus || 'camp-hitech'}`, { headers });
+      if (!res.ok) throw new Error('Failed to load campus summary');
+      const data = await res.json();
+      const summaries = data.summaries || [];
+
+      if (summaries.length === 0) {
+        container.innerHTML = `
+          <div style="font-size: 0.82rem; color: var(--color-text-muted); font-style: italic; padding: 0.75rem 0;">
+            No weekly progression summary generated yet for this campus. Click <strong>"Generate Weekly Summary"</strong> to synthesize current progression.
+          </div>
+        `;
+        return;
+      }
+
+      const latest = summaries[0];
+      container.innerHTML = `
+        <div style="margin-top: 0.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem; flex-wrap: wrap; gap: 0.5rem;">
+            <span style="font-size: 0.8rem; color: var(--color-text-secondary);">
+              Week: <strong>${latest.weekStartDate}</strong> to <strong>${latest.weekEndDate}</strong> • Generated on ${new Date(latest.createdAt).toLocaleDateString()}
+            </span>
+            <div style="display: flex; gap: 0.4rem; align-items: center;">
+              <span class="badge ${latest.reviewStatus === 'REVIEWED' ? 'badge-on-track' : 'badge-tight'}">
+                ${latest.reviewStatus === 'REVIEWED' ? `✓ Reviewed by ${latest.reviewedBy || 'Manager'}` : '⏳ Pending Manager Review'}
+              </span>
+              ${latest.reviewStatus !== 'REVIEWED' && (this.currentRole === 'campus_manager' || this.currentRole === 'admin') ? `
+                <button class="btn btn-secondary btn-sm" onclick="app.reviewCampusSummary('${latest.id}')">
+                  <span>✓ Acknowledge Review</span>
+                </button>
+              ` : ''}
+            </div>
+          </div>
+
+          <div style="background: var(--color-surface-subtle); padding: 0.85rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--color-border-light); font-size: 0.84rem; line-height: 1.5; margin-bottom: 0.85rem;">
+            ${latest.summaryText.replace(/\n/g, '<br>')}
+          </div>
+
+          ${latest.groundedEvidence && latest.groundedEvidence.length > 0 ? `
+            <div style="margin-top: 0.65rem;">
+              <div style="font-size: 0.78rem; font-weight: 700; color: var(--color-navy); margin-bottom: 0.35rem;">
+                📌 Grounded Evidence Citing Faculty Notes:
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                ${latest.groundedEvidence.map((ev) => `
+                  <div class="evidence-quote-box">
+                    <strong>${ev.subjectCode} - ${ev.subjectName}:</strong> ${ev.evidence}
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+
+          <div style="margin-top: 0.85rem; font-size: 0.74rem; color: #b45309; background: #fffbeb; padding: 0.45rem 0.65rem; border-radius: 4px; border: 1px solid #fde68a;">
+            ${latest.disclaimer}
+          </div>
+        </div>
+      `;
+    } catch (err) {
+      container.innerHTML = `<div style="font-size: 0.8rem; color: var(--color-danger);">${err.message}</div>`;
+    }
+  }
+
+  async generateCampusSummary() {
+    try {
+      this.showToast('Synthesizing grounded weekly campus summary...', 'info');
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(this.auth?.token ? { 'Authorization': `Bearer ${this.auth.token}` } : {})
+      };
+      const res = await fetch(`${API_BASE}/campus-summaries/generate`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ campusId: this.selectedCampus || 'camp-hitech' }),
+      });
+      if (!res.ok) throw new Error('Failed to generate summary');
+      this.showToast('AI weekly grounded summary generated successfully!');
+      this.loadCampusSummary();
+    } catch (err) {
+      this.showToast(err.message, 'danger');
+    }
+  }
+
+  async reviewCampusSummary(summaryId) {
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(this.auth?.token ? { 'Authorization': `Bearer ${this.auth.token}` } : {})
+      };
+      const res = await fetch(`${API_BASE}/campus-summaries/${summaryId}/review`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ reviewNotes: 'Acknowledged and noted for academic recovery planning.' }),
+      });
+      if (!res.ok) throw new Error('Failed to record review');
+      this.showToast('Campus summary reviewed and acknowledged.');
+      this.loadCampusSummary();
+    } catch (err) {
+      this.showToast(err.message, 'danger');
+    }
+  }
+
+  // ==========================================================================
+  // VISITING FACULTY HONORARIUM METHODS
+  // ==========================================================================
+  async loadHonorariumReports() {
+    const banner = document.getElementById('honorariumPolicyBanner');
+    const tableContainer = document.getElementById('honorariumTableContainer');
+    if (!tableContainer) return;
+
+    try {
+      const headers = this.auth?.token ? { 'Authorization': `Bearer ${this.auth.token}` } : {};
+      const [polRes, repRes] = await Promise.all([
+        fetch(`${API_BASE}/honorarium/policy?campusId=${this.selectedCampus || 'camp-hitech'}`, { headers }),
+        fetch(`${API_BASE}/honorarium/reports?campusId=${this.selectedCampus || 'camp-hitech'}`, { headers }),
+      ]);
+
+      const polData = polRes.ok ? await polRes.json() : null;
+      const repData = repRes.ok ? await repRes.json() : { reports: [] };
+
+      if (banner && polData) {
+        banner.innerHTML = `
+          <div style="background: var(--color-surface-subtle); padding: 0.65rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; font-size: 0.82rem;">
+            <div>
+              <strong>Active Rate Policy (${polData.campusId || 'HI-Tech'}):</strong>
+              <span style="color: var(--color-navy); font-weight: 700;"> ₹${polData.rate_per_lecture_hour?.toLocaleString() || 2500}/contact hour</span> •
+              Conveyance: <span>₹${polData.conveyance_allowance || 0}</span> •
+              Monthly Cap: <span>${polData.max_hours_per_month || 40} hrs</span>
+            </div>
+            <span class="badge badge-on-track">Configured by ${polData.configured_by || 'Admin'}</span>
+          </div>
+        `;
+      }
+
+      const reports = repData.reports || [];
+      if (reports.length === 0) {
+        tableContainer.innerHTML = `
+          <div style="font-size: 0.82rem; color: var(--color-text-muted); font-style: italic; padding: 0.75rem 0;">
+            No monthly honorarium reports generated yet. Click "Recalculate Month" to compute from daily logs.
+          </div>
+        `;
+        return;
+      }
+
+      tableContainer.innerHTML = `
+        <div class="honorarium-table-wrap">
+          <table class="honorarium-table">
+            <thead>
+              <tr>
+                <th>Faculty Member</th>
+                <th>Designation</th>
+                <th>Month</th>
+                <th>Delivered / Planned</th>
+                <th>Hourly Rate</th>
+                <th>Total Compensation</th>
+                <th>Approval Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${reports.map((r) => `
+                <tr>
+                  <td>
+                    <strong>${r.facultyName}</strong>
+                    <div style="font-size: 0.74rem; color: var(--color-text-muted);">${r.facultyEmail}</div>
+                  </td>
+                  <td>${r.designation}</td>
+                  <td><strong>${r.monthYear}</strong></td>
+                  <td>${r.deliveredHours}h / ${r.plannedHours}h (${r.deliveredSessionsCount} sessions)</td>
+                  <td>₹${r.rateApplied?.toLocaleString()}</td>
+                  <td><strong style="color: var(--color-navy); font-size: 0.9rem;">₹${r.totalAmount?.toLocaleString()}</strong></td>
+                  <td>
+                    <span class="badge ${r.status === 'APPROVED_BY_ADMIN' ? 'badge-on-track' : (r.status === 'SUBMITTED' ? 'badge-tight' : 'badge-secondary')}">
+                      ${r.status === 'APPROVED_BY_ADMIN' ? '✓ Approved' : r.status}
+                    </span>
+                  </td>
+                  <td>
+                    <div style="display: flex; gap: 0.35rem;">
+                      <button class="btn btn-secondary btn-sm" onclick="app.viewSourceLogs('${r.id}')" title="Audit source session logs">
+                        <span>🔍 Audit (${r.sourceLogIds?.length || 0})</span>
+                      </button>
+                      ${r.status === 'DRAFT' ? `
+                        <button class="btn btn-primary btn-sm" onclick="app.submitHonorariumReport('${r.id}')">Submit</button>
+                      ` : ''}
+                      ${r.status === 'SUBMITTED' && this.currentRole === 'admin' ? `
+                        <button class="btn btn-primary btn-sm" onclick="app.approveHonorariumReport('${r.id}')">✓ Approve</button>
+                      ` : ''}
+                    </div>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    } catch (err) {
+      tableContainer.innerHTML = `<div style="font-size: 0.8rem; color: var(--color-danger);">${err.message}</div>`;
+    }
+  }
+
+  openHonorariumPolicyModal() {
+    this.openModal('honorariumPolicyModal');
+  }
+
+  async saveHonorariumPolicy() {
+    try {
+      const campusId = document.getElementById('polCampusSelect')?.value || 'camp-hitech';
+      const rate = Number(document.getElementById('polHourlyRate')?.value || 2500);
+      const conveyance = Number(document.getElementById('polConveyance')?.value || 1000);
+      const maxHours = Number(document.getElementById('polMaxHours')?.value || 40);
+
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(this.auth?.token ? { 'Authorization': `Bearer ${this.auth.token}` } : {})
+      };
+      const res = await fetch(`${API_BASE}/honorarium/policy`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          campusId,
+          ratePerLectureHour: rate,
+          conveyanceAllowance: conveyance,
+          maxHoursPerMonth: maxHours,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Failed to save policy');
+      }
+
+      this.closeModal('honorariumPolicyModal');
+      this.showToast('Honorarium rate policy configured successfully!');
+      this.loadHonorariumReports();
+    } catch (err) {
+      this.showToast(err.message, 'danger');
+    }
+  }
+
+  async generateHonorariumReport() {
+    try {
+      this.showToast('Calculating monthly honorarium against delivered session logs...', 'info');
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(this.auth?.token ? { 'Authorization': `Bearer ${this.auth.token}` } : {})
+      };
+      const res = await fetch(`${API_BASE}/honorarium/generate`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ campusId: this.selectedCampus || 'camp-hitech', monthYear: '2026-10' }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Failed to generate honorarium report');
+      }
+
+      this.showToast('Honorarium report calculated with full audit links!');
+      this.loadHonorariumReports();
+    } catch (err) {
+      this.showToast(err.message, 'danger');
+    }
+  }
+
+  async submitHonorariumReport(reportId) {
+    try {
+      const headers = this.auth?.token ? { 'Authorization': `Bearer ${this.auth.token}` } : {};
+      await fetch(`${API_BASE}/honorarium/reports/${reportId}/submit`, { method: 'POST', headers });
+      this.showToast('Report submitted for Academic Administrator approval.');
+      this.loadHonorariumReports();
+    } catch (err) {
+      this.showToast(err.message, 'danger');
+    }
+  }
+
+  async approveHonorariumReport(reportId) {
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(this.auth?.token ? { 'Authorization': `Bearer ${this.auth.token}` } : {})
+      };
+      await fetch(`${API_BASE}/honorarium/reports/${reportId}/approve`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ notes: 'Verified delivered sessions and approved for payment disbursement.' }),
+      });
+      this.showToast('Report approved by administrator.');
+      this.loadHonorariumReports();
+    } catch (err) {
+      this.showToast(err.message, 'danger');
+    }
+  }
+
+  async viewSourceLogs(reportId) {
+    const modalBody = document.getElementById('sourceLogsModalBody');
+    if (!modalBody) return;
+    try {
+      const headers = this.auth?.token ? { 'Authorization': `Bearer ${this.auth.token}` } : {};
+      const res = await fetch(`${API_BASE}/honorarium/reports/${reportId}`, { headers });
+      if (!res.ok) throw new Error('Could not fetch report details');
+      const data = await res.json();
+      const r = data.report || {};
+      const sourceLogs = r.sourceLogs || [];
+
+      document.getElementById('sourceLogsModalTitle').textContent = `Audit Trail: ${r.faculty_name} (${r.month_year})`;
+      modalBody.innerHTML = `
+        <div style="margin-bottom: 0.85rem; padding: 0.75rem; background: var(--color-surface-subtle); border-radius: var(--radius-sm); border: 1px solid var(--color-border); font-size: 0.82rem;">
+          <div><strong>Total Delivered Hours:</strong> ${r.delivered_hours}h • <strong>Total Honorarium:</strong> ₹${r.total_amount?.toLocaleString()}</div>
+          <div style="color: var(--color-text-secondary); margin-top: 0.2rem;">Every delivered session log below directly contributed to this monthly honorarium report.</div>
+        </div>
+        ${sourceLogs.length === 0 ? `
+          <div style="font-size: 0.82rem; color: var(--color-text-muted); font-style: italic;">No recorded session logs found for this period.</div>
+        ` : `
+          <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+            ${sourceLogs.map((log) => `
+              <div style="padding: 0.75rem; border: 1px solid var(--color-border); border-radius: 6px; background: #ffffff;">
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem;">
+                  <strong>📅 ${log.session_date} · ${log.subject_code} - ${log.subject_name}</strong>
+                  <span class="badge badge-on-track">${log.status} (${log.percentage_complete}%)</span>
+                </div>
+                <div style="font-size: 0.78rem; color: var(--color-text-secondary); margin-top: 0.25rem;">
+                  Time: ${log.start_time} - ${log.end_time} • Log ID: <code>${log.id}</code>
+                </div>
+                <div style="font-size: 0.78rem; margin-top: 0.25rem;">
+                  <strong>Topics Covered:</strong> ${log.topics_covered || 'None'}
+                  ${log.leftovers ? `• <strong>Leftovers:</strong> ${log.leftovers}` : ''}
+                </div>
+                ${log.notes ? `<div style="font-size: 0.75rem; color: var(--color-text-muted); font-style: italic; margin-top: 0.2rem;">Notes: "${log.notes}"</div>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        `}
+      `;
+      this.openModal('sourceLogsModal');
+    } catch (err) {
+      this.showToast(err.message, 'danger');
+    }
+  }
+
+  // ==========================================================================
+  // GOOGLE SHEETS EXPORT WITH SETUP GUIDE
+  // ==========================================================================
+  async exportToGoogleSheets(dataset) {
+    try {
+      this.showToast(`Requesting Google Sheets export for ${dataset}...`, 'info');
+      const headers = this.auth?.token ? { 'Authorization': `Bearer ${this.auth.token}` } : {};
+      const res = await fetch(`${API_BASE}/csv/sheets/${dataset}`, { method: 'POST', headers });
+      const data = await res.json();
+
+      if (data.configured && data.spreadsheetUrl) {
+        window.open(data.spreadsheetUrl, '_blank');
+        this.showToast('Opened Google Sheet export in new tab!');
+        return;
+      }
+
+      // If unconfigured, display guide modal
+      const modalBody = document.getElementById('googleSheetsModalBody');
+      const downloadBtn = document.getElementById('sheetsDirectDownloadBtn');
+      if (downloadBtn && data.downloadCsvUrl) {
+        downloadBtn.href = `${API_BASE.replace('/api', '')}${data.downloadCsvUrl}`;
+      }
+
+      if (modalBody) {
+        modalBody.innerHTML = `
+          <div style="margin-bottom: 1rem;">
+            <div style="padding: 0.75rem; background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; font-size: 0.82rem; color: #92400e; margin-bottom: 0.85rem;">
+              <strong>ℹ️ Google Sheets API Not Configured with Service Credentials</strong><br>
+              ${data.message || 'Direct write to Google Sheets requires backend service account credentials.'}
+            </div>
+            <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--color-navy); margin-bottom: 0.4rem;">Setup Instructions:</h4>
+            <ol style="font-size: 0.8rem; color: var(--color-text-secondary); padding-left: 1.25rem; line-height: 1.6;">
+              <li>${data.setupGuide?.step1 || 'Create a project in Google Cloud Console.'}</li>
+              <li>${data.setupGuide?.step2 || 'Enable the Google Sheets API and Drive API.'}</li>
+              <li>${data.setupGuide?.step3 || 'Generate a Service Account Key and set GOOGLE_SERVICE_ACCOUNT_KEY in backend/.env.'}</li>
+              <li>${data.setupGuide?.step4 || 'Or download the CSV file directly and import via Google Sheets File > Import.'}</li>
+            </ol>
+          </div>
+        `;
+      }
+      this.openModal('googleSheetsModal');
+    } catch (err) {
+      this.showToast(err.message, 'danger');
+    }
+  }
+
+  // ==========================================================================
+  // GOOGLE / OUTLOOK CALENDAR SYNC METHODS
+  // ==========================================================================
+  async openCalendarSyncModal() {
+    const modalBody = document.getElementById('calendarSyncModalBody');
+    if (!modalBody) return;
+    try {
+      const headers = this.auth?.token ? { 'Authorization': `Bearer ${this.auth.token}` } : {};
+      const [cfgRes, statusRes] = await Promise.all([
+        fetch(`${API_BASE}/calendar-sync/config-status`, { headers }),
+        fetch(`${API_BASE}/calendar-sync/status`, { headers }),
+      ]);
+
+      const cfgData = cfgRes.ok ? await cfgRes.json() : {};
+      const statusData = statusRes.ok ? await statusRes.json() : { connectedAccounts: [], conflicts: [] };
+
+      const googleCfg = cfgData.google || {};
+      const outlookCfg = cfgData.outlook || {};
+      const googleAccount = statusData.connectedAccounts?.find((a) => a.provider === 'google');
+      const outlookAccount = statusData.connectedAccounts?.find((a) => a.provider === 'outlook');
+      const conflicts = statusData.conflicts || [];
+
+      modalBody.innerHTML = `
+        ${conflicts.length > 0 ? `
+          <div class="calendar-conflict-alert">
+            <strong style="color: #b45309;">⚠️ External Calendar Modifications Flagged (${conflicts.length})</strong>
+            <p style="margin: 0.35rem 0 0.5rem; color: #78350f;">
+              Events were edited externally in your calendar. To prevent silent overwriting, please select a resolution:
+            </p>
+            ${conflicts.map((c) => `
+              <div style="background: #ffffff; padding: 0.65rem; border-radius: 6px; border: 1px solid #fde68a; margin-top: 0.35rem;">
+                <div style="font-weight: 700; color: var(--color-navy);">${c.event_summary}</div>
+                <div style="font-size: 0.75rem; color: var(--color-text-secondary); margin: 0.2rem 0;">${c.conflict_details}</div>
+                <div style="display: flex; gap: 0.4rem; margin-top: 0.4rem;">
+                  <button class="btn btn-primary btn-sm" onclick="app.resolveCalendarConflict('${c.id}', 'OVERWRITE_EXTERNAL')">
+                    <span>Overwrite with Authoritative MSOT Schedule</span>
+                  </button>
+                  <button class="btn btn-secondary btn-sm" onclick="app.resolveCalendarConflict('${c.id}', 'KEEP_EXTERNAL')">
+                    <span>Keep External Modifications</span>
+                  </button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+
+        <div class="calendar-sync-grid">
+          <!-- Google Calendar -->
+          <div class="calendar-provider-card">
+            <div>
+              <div class="calendar-provider-header">
+                <strong>Google Calendar</strong>
+                <span class="badge ${googleAccount ? 'badge-on-track' : 'badge-secondary'}">
+                  ${googleAccount ? '✓ Connected' : (googleCfg.configured ? 'Configured' : 'Setup Guide')}
+                </span>
+              </div>
+              <p style="font-size: 0.78rem; color: var(--color-text-secondary); margin-bottom: 0.75rem;">
+                Least-privilege calendar scopes. Idempotent hash prevents duplicate events.
+              </p>
+              ${googleAccount ? `
+                <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">
+                  Account: <strong>${googleAccount.external_account_id}</strong><br>
+                  Last Synced: ${googleAccount.last_sync_at ? new Date(googleAccount.last_sync_at).toLocaleString() : 'Never'}
+                </div>
+              ` : `
+                <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">
+                  ${googleCfg.isMockMode ? '⚡ Local Dev/Mock Mode Active' : (googleCfg.configured ? 'Server credentials ready' : 'Requires GOOGLE_CLIENT_ID in .env')}
+                </div>
+              `}
+            </div>
+            <div style="display: flex; gap: 0.4rem; margin-top: 0.5rem;">
+              ${googleAccount ? `
+                <button class="btn btn-secondary btn-sm" onclick="app.disconnectCalendarSync('google')">Disconnect</button>
+              ` : `
+                <button class="btn btn-primary btn-sm" onclick="app.connectCalendarSync('google')">Opt-in & Connect</button>
+              `}
+            </div>
+          </div>
+
+          <!-- Microsoft Outlook -->
+          <div class="calendar-provider-card">
+            <div>
+              <div class="calendar-provider-header">
+                <strong>Microsoft Outlook</strong>
+                <span class="badge ${outlookAccount ? 'badge-on-track' : 'badge-secondary'}">
+                  ${outlookAccount ? '✓ Connected' : (outlookCfg.configured ? 'Configured' : 'Setup Guide')}
+                </span>
+              </div>
+              <p style="font-size: 0.78rem; color: var(--color-text-secondary); margin-bottom: 0.75rem;">
+                Syncs exam windows and extra class remedials directly to Microsoft 365.
+              </p>
+              ${outlookAccount ? `
+                <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">
+                  Account: <strong>${outlookAccount.external_account_id}</strong><br>
+                  Last Synced: ${outlookAccount.last_sync_at ? new Date(outlookAccount.last_sync_at).toLocaleString() : 'Never'}
+                </div>
+              ` : `
+                <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">
+                  ${outlookCfg.isMockMode ? '⚡ Local Dev/Mock Mode Active' : (outlookCfg.configured ? 'Server credentials ready' : 'Requires OUTLOOK_CLIENT_ID in .env')}
+                </div>
+              `}
+            </div>
+            <div style="display: flex; gap: 0.4rem; margin-top: 0.5rem;">
+              ${outlookAccount ? `
+                <button class="btn btn-secondary btn-sm" onclick="app.disconnectCalendarSync('outlook')">Disconnect</button>
+              ` : `
+                <button class="btn btn-primary btn-sm" onclick="app.connectCalendarSync('outlook')">Opt-in & Connect</button>
+              `}
+            </div>
+          </div>
+        </div>
+
+        <!-- Sync Preferences -->
+        <div style="background: var(--color-surface-subtle); padding: 0.85rem; border-radius: 6px; border: 1px solid var(--color-border); font-size: 0.82rem;">
+          <div style="font-weight: 700; color: var(--color-navy); margin-bottom: 0.4rem;">Sync Preferences (Least-Privilege Scopes)</div>
+          <label style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.35rem;">
+            <input type="checkbox" id="syncExamsOpt" checked>
+            <span>Sync Mid-Term & Final Examination Cutoff Windows</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.4rem;">
+            <input type="checkbox" id="syncClassesOpt" checked>
+            <span>Sync Scheduled Teaching Classes & Saturday Remedials</span>
+          </label>
+        </div>
+      `;
+      this.openModal('calendarSyncModal');
+    } catch (err) {
+      this.showToast(err.message, 'danger');
+    }
+  }
+
+  async connectCalendarSync(provider) {
+    try {
+      const syncExamDates = document.getElementById('syncExamsOpt')?.checked ?? true;
+      const syncExtraClasses = document.getElementById('syncClassesOpt')?.checked ?? true;
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(this.auth?.token ? { 'Authorization': `Bearer ${this.auth.token}` } : {})
+      };
+      const res = await fetch(`${API_BASE}/calendar-sync/connect`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ provider, syncExamDates, syncExtraClasses }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Failed to connect calendar');
+      }
+      this.showToast(`Connected ${provider.toUpperCase()} calendar sync.`);
+      this.openCalendarSyncModal();
+    } catch (err) {
+      this.showToast(err.message, 'danger');
+    }
+  }
+
+  async triggerCalendarSync() {
+    try {
+      this.showToast('Synchronizing events with external calendar...', 'info');
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(this.auth?.token ? { 'Authorization': `Bearer ${this.auth.token}` } : {})
+      };
+      const res = await fetch(`${API_BASE}/calendar-sync/sync`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ provider: 'google' }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Failed to sync');
+      }
+      const data = await res.json();
+      this.showToast(`Calendar sync complete: ${data.syncedCount} pushed, ${data.duplicateSkippedCount} duplicates skipped!`);
+      this.openCalendarSyncModal();
+    } catch (err) {
+      this.showToast(err.message, 'danger');
+    }
+  }
+
+  async resolveCalendarConflict(syncEventId, resolution) {
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(this.auth?.token ? { 'Authorization': `Bearer ${this.auth.token}` } : {})
+      };
+      const res = await fetch(`${API_BASE}/calendar-sync/resolve-conflict`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ syncEventId, resolution }),
+      });
+      if (!res.ok) throw new Error('Failed to resolve conflict');
+      this.showToast(`Conflict resolved (${resolution}).`);
+      this.openCalendarSyncModal();
+    } catch (err) {
+      this.showToast(err.message, 'danger');
+    }
+  }
+
+  async disconnectCalendarSync(provider) {
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(this.auth?.token ? { 'Authorization': `Bearer ${this.auth.token}` } : {})
+      };
+      await fetch(`${API_BASE}/calendar-sync/disconnect`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ provider }),
+      });
+      this.showToast(`Disconnected ${provider.toUpperCase()} calendar sync.`);
+      this.openCalendarSyncModal();
+    } catch (err) {
+      this.showToast(err.message, 'danger');
+    }
+  }
+
   logout() {
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem('msot_auth_token');
@@ -2147,6 +4031,7 @@ window.app = new AppStore();
 
 // Bootstrap on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
+  window.app.initTheme();
   window.app.checkBackendConnection();
   window.app.initAuth();
   window.app.renderAuthGate();
