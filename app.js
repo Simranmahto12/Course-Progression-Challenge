@@ -604,9 +604,37 @@ class AppStore {
     return false;
   }
 
+  isAuthenticated() {
+    return Boolean(this.auth && this.auth.token && this.auth.user && this.auth.user.role);
+  }
+
+  renderAuthGate() {
+    const loginScreen = document.getElementById('loginScreen');
+    const appLayout = document.getElementById('appLayout');
+
+    if (this.isAuthenticated()) {
+      if (loginScreen) loginScreen.style.display = 'none';
+      if (appLayout) appLayout.style.display = 'block';
+      this.updateNavAuthState();
+      this.render();
+    } else {
+      if (loginScreen) {
+        loginScreen.style.display = 'flex';
+        this.editPhoneStep();
+      }
+      if (appLayout) appLayout.style.display = 'none';
+      this.updateNavAuthState();
+    }
+  }
+
   switchRole(role) {
+    if (!this.isAuthenticated()) {
+      this.renderAuthGate();
+      return;
+    }
+
     this.currentRole = role;
-    const user = this.state.users[role];
+    const user = this.state.users[role] || this.auth.user;
 
     // Update avatar and name in topbar
     const avatar = document.getElementById('userAvatar');
@@ -635,6 +663,10 @@ class AppStore {
   }
 
   setTab(tab) {
+    if (!this.isAuthenticated()) {
+      this.renderAuthGate();
+      return;
+    }
     this.currentTab = tab;
     document.querySelectorAll('.nav-tab').forEach((el) => {
       el.classList.toggle('active', el.dataset.tab === tab);
@@ -694,6 +726,10 @@ class AppStore {
   // FACULTY LOGGING MODAL LOGIC (<60s)
   // ==========================================================================
   openQuickLogModal(slotId) {
+    if (!this.isAuthenticated()) {
+      this.renderAuthGate();
+      return;
+    }
     // If slotId not provided, default to first slot of current faculty
     const facultyId = this.state.users[this.currentRole]?.id || 'usr-fac-sharma';
     const facultySlots = this.state.timetables.filter((t) => t.facultyId === facultyId || this.currentRole === 'admin');
@@ -1854,16 +1890,11 @@ class AppStore {
   }
 
   openAuthModal() {
-    const modal = document.getElementById('authModal');
-    if (modal) {
-      modal.classList.add('active');
-      this.editPhoneStep();
-    }
+    this.renderAuthGate();
   }
 
   closeAuthModal() {
-    const modal = document.getElementById('authModal');
-    if (modal) modal.classList.remove('active');
+    this.renderAuthGate();
   }
 
   fillDemoPhone(phone, roleName) {
@@ -2034,9 +2065,9 @@ class AppStore {
         }
 
         const role = (data.role || 'faculty').toLowerCase();
-        this.switchRole(role);
-        this.updateNavAuthState();
-        this.closeAuthModal();
+        this.currentRole = role;
+        this.state.currentUser = this.state.users[role] || data.user;
+        this.renderAuthGate();
 
         const googleNote = data.user.googleLinked ? ` (Google: ${data.user.email})` : '';
         this.showToast(`Verified! Welcome ${data.user.name} [${data.user.roleDisplay || role.toUpperCase()}]${googleNote}`);
@@ -2106,9 +2137,8 @@ class AppStore {
     this.auth.token = null;
     this.auth.user = null;
     this.auth.googleProfile = null;
-    this.updateNavAuthState();
+    this.renderAuthGate();
     this.showToast('Logged out of session.');
-    this.openAuthModal();
   }
 }
 
@@ -2119,15 +2149,7 @@ window.app = new AppStore();
 document.addEventListener('DOMContentLoaded', () => {
   window.app.checkBackendConnection();
   window.app.initAuth();
-
-  // If saved session exists, switch to saved user; otherwise open auth card
-  if (window.app.auth.user && window.app.auth.user.role) {
-    window.app.switchRole(window.app.auth.user.role.toLowerCase());
-  } else {
-    window.app.switchRole('faculty');
-    // Open auth card on fresh visit for evaluator testing
-    window.app.openAuthModal();
-  }
+  window.app.renderAuthGate();
 });
 
 

@@ -17,7 +17,227 @@
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <div class="app-layout">
+  <!-- ====================================================================== -->
+  <!-- DEDICATED FULL-PAGE COMPULSORY LOGIN SCREEN (MIRAI BRANDING)           -->
+  <!-- User cannot access the platform or dashboards without authenticating   -->
+  <!-- ====================================================================== -->
+  <div id="loginScreen" class="login-screen-view">
+    <div class="login-screen-container">
+      <!-- Left Hero Showcase Pane (Desktop / Tablet) -->
+      <div class="login-hero-pane">
+        <div class="login-hero-top">
+          <div class="login-hero-brand">
+            <img src="./assets/mirai-logo.png" alt="Mirai School of Technology Logo" class="login-hero-logo">
+            <div class="login-hero-text">
+              <div class="login-hero-title">MIRAI SCHOOL OF TECHNOLOGY</div>
+              <div class="login-hero-sub">Course Progression Platform</div>
+            </div>
+          </div>
+
+          <div class="login-hero-badge">⚡ Academic Operations Engine</div>
+          <h1 class="login-hero-heading">Deterministic Curriculum Delivery Across All Campuses</h1>
+          <p class="login-hero-desc">
+            Empowering Mirai faculty, campus leadership, and academic managers to track syllabus delivery in real-time, predict bottleneck risks early, and ensure 100% exam readiness.
+          </p>
+
+          <div class="login-feature-list">
+            <div class="login-feature-item">
+              <div class="login-feature-icon">🏛️</div>
+              <div class="login-feature-text">
+                <strong>Multi-Campus Rollup Intelligence</strong>
+                <span>Unified governance across HI-Tech, Ratnam, RGIB, and JUJ campuses.</span>
+              </div>
+            </div>
+            <div class="login-feature-item">
+              <div class="login-feature-icon">🎯</div>
+              <div class="login-feature-text">
+                <strong>Worst-Subject Bottleneck Detection</strong>
+                <span>Buffer ratios identify delayed topics weeks before exams occur.</span>
+              </div>
+            </div>
+            <div class="login-feature-item">
+              <div class="login-feature-icon">⚡</div>
+              <div class="login-feature-text">
+                <strong>Rapid Faculty Mobile Logging</strong>
+                <span>Log sessions, topics, and leftovers in under 60 seconds on any device.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="login-hero-footer">
+          <span>🔒 Authorized Academic Access Only</span>
+          <span>•</span>
+          <span>AY 2026-27</span>
+          <span>•</span>
+          <span>Mirai School of Technology</span>
+        </div>
+      </div>
+
+      <!-- Right Card Auth Form Pane -->
+      <div class="login-card-pane">
+        <!-- Mobile Brand Header (Visible on smaller viewports) -->
+        <div class="login-mobile-brand-header">
+          <img src="./assets/mirai-logo.png" alt="Mirai Logo" class="login-mobile-logo">
+          <div class="login-mobile-text">
+            <span class="login-mobile-title">MIRAI SCHOOL OF TECHNOLOGY</span>
+            <span class="login-mobile-sub">Course Progression Platform</span>
+          </div>
+        </div>
+
+        <div class="auth-card">
+          <div class="auth-card-body" style="padding: 0;">
+            <!-- STEP 1: MOBILE NUMBER INPUT (COMPULSORY) -->
+            <div class="auth-step active" id="authStepPhone">
+              <div class="auth-step-heading">
+                <h2>Sign In to Portal</h2>
+                <p>Mobile number authentication is <strong>compulsory</strong>. Enter your 10-digit number to receive your passcode.</p>
+              </div>
+
+              <form id="phoneForm" onsubmit="event.preventDefault(); app.sendOtp();">
+                <div class="form-group">
+                  <label class="form-label" for="phoneInput">Registered Mobile Number <span class="badge-compulsory">COMPULSORY</span></label>
+                  <div class="phone-input-wrap">
+                    <div class="country-code-pill">
+                      <span class="flag-icon">🇮🇳</span>
+                      <select id="countryCodeSelect" class="country-select" aria-label="Country Code">
+                        <option value="+91" selected>+91</option>
+                      </select>
+                    </div>
+                    <input 
+                      type="tel" 
+                      id="phoneInput" 
+                      class="phone-input" 
+                      placeholder="98765 43210" 
+                      maxlength="10" 
+                      inputmode="numeric" 
+                      pattern="[0-9]{10}"
+                      autocomplete="tel"
+                      required
+                    >
+                  </div>
+                  <span class="form-hint">Enter your standard 10-digit mobile number</span>
+                </div>
+
+                <!-- Demo Role Fast-Fill Pills -->
+                <div class="demo-numbers-box">
+                  <span class="demo-box-label">⚡ 1-Tap Demo Test Numbers:</span>
+                  <div class="demo-pills-grid">
+                    <button type="button" class="demo-pill" onclick="app.fillDemoPhone('9876543210', 'Admin')">
+                      <span class="pill-role">Admin</span>
+                      <span class="pill-phone">9876543210</span>
+                    </button>
+                    <button type="button" class="demo-pill" onclick="app.fillDemoPhone('9876543211', 'Campus Mgr')">
+                      <span class="pill-role">Campus Mgr</span>
+                      <span class="pill-phone">9876543211</span>
+                    </button>
+                    <button type="button" class="demo-pill" onclick="app.fillDemoPhone('9876543212', 'Faculty')">
+                      <span class="pill-role">Faculty</span>
+                      <span class="pill-phone">9876543212</span>
+                    </button>
+                    <button type="button" class="demo-pill" onclick="app.fillDemoPhone('9876543213', 'Student')">
+                      <span class="pill-role">Student</span>
+                      <span class="pill-phone">9876543213</span>
+                    </button>
+                  </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-auth-submit" id="btnGetOtp">
+                  <span class="btn-text">Get OTP (Compulsory Step)</span>
+                  <span class="btn-arrow">→</span>
+                </button>
+
+                <!-- Optional Email Sign-In via Google OAuth -->
+                <div class="auth-divider">
+                  <span>OR (OPTIONAL EMAIL LOGIN)</span>
+                </div>
+
+                <div class="google-auth-box">
+                  <button type="button" class="btn-google-custom" id="customGoogleBtn" onclick="app.signInWithGoogle()">
+                    <svg width="18" height="18" viewBox="0 0 24 24">
+                      <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                      <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
+                      <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                      <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                    </svg>
+                    <span>Continue with Google (Optional Email)</span>
+                  </button>
+
+                  <div id="googleGsiButton" class="google-gsi-slot"></div>
+
+                  <div class="google-linked-status" id="googleLinkedStatus" style="display: none;">
+                    <span class="status-icon">✓</span>
+                    <span class="status-text">Google email linked: <strong id="googleLinkedEmailText"></strong></span>
+                    <button type="button" class="btn-unlink-google" onclick="app.unlinkGoogle()" title="Unlink Google Account">✕</button>
+                  </div>
+
+                  <p class="google-hint-text">
+                    <span class="badge-compulsory">NOTE:</span> Mobile number OTP is <strong>compulsory</strong>. Google email sign-in is <strong>optional</strong>.
+                  </p>
+                </div>
+              </form>
+            </div>
+
+            <!-- STEP 2: OTP VERIFICATION -->
+            <div class="auth-step" id="authStepOtp" style="display: none;">
+              <div class="auth-step-heading">
+                <h2>Enter 6-Digit OTP</h2>
+                <div class="phone-display-row">
+                  <span>Code sent to <strong>+91 <span id="displayOtpPhone">98765 43210</span></strong></span>
+                  <button type="button" class="btn-link-edit" onclick="app.editPhoneStep()">✏️ Change</button>
+                </div>
+              </div>
+
+              <div class="demo-otp-callout" id="demoOtpBanner">
+                <div class="demo-callout-icon">💡</div>
+                <div class="demo-callout-content">
+                  <strong>Demo Mode:</strong>
+                  <span>Your verification OTP is <code class="otp-highlight">123456</code></span>
+                </div>
+                <button type="button" class="btn-quick-fill-otp" onclick="app.autoFillDemoOtp()">Auto-Fill</button>
+              </div>
+
+              <form id="otpForm" onsubmit="event.preventDefault(); app.verifyOtp();">
+                <div class="form-group">
+                  <label class="form-label" for="otpBox0">Verification Code</label>
+                  <div class="otp-digits-container" id="otpDigitsContainer">
+                    <input type="text" maxlength="1" inputmode="numeric" class="otp-box" id="otpBox0" data-index="0" autocomplete="off">
+                    <input type="text" maxlength="1" inputmode="numeric" class="otp-box" id="otpBox1" data-index="1" autocomplete="off">
+                    <input type="text" maxlength="1" inputmode="numeric" class="otp-box" id="otpBox2" data-index="2" autocomplete="off">
+                    <input type="text" maxlength="1" inputmode="numeric" class="otp-box" id="otpBox3" data-index="3" autocomplete="off">
+                    <input type="text" maxlength="1" inputmode="numeric" class="otp-box" id="otpBox4" data-index="4" autocomplete="off">
+                    <input type="text" maxlength="1" inputmode="numeric" class="otp-box" id="otpBox5" data-index="5" autocomplete="off">
+                  </div>
+                </div>
+
+                <div class="otp-resend-row">
+                  <span id="resendCountdownText">Resend available in <strong id="resendTimer">30s</strong></span>
+                  <button type="button" class="btn-resend-link" id="btnResendOtp" disabled onclick="app.resendOtp()">Resend Code</button>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-auth-submit" id="btnVerifyOtp">
+                  <span class="btn-text">Verify & Enter Platform</span>
+                  <span class="btn-check">✓</span>
+                </button>
+
+                <div class="auth-back-link">
+                  <button type="button" class="btn-link" onclick="app.editPhoneStep()">← Back to Mobile Number</button>
+                </div>
+              </form>
+            </div>
+          </div>
+          <div class="auth-card-footer" style="padding: 1rem 0 0; border-top: 1px solid #f1f5f9; margin-top: 1rem;">
+            <span>🔒 Secure MSOT Academic Single Sign-On • Compulsory Mobile Authentication</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================== -->
+  <!-- MAIN APPLICATION LAYOUT (LOCKED UNTIL COMPULSORY LOGIN)                 -->
+  <!-- ====================================================================== -->
+  <div class="app-layout" id="appLayout" style="display: none;">
     <!-- Top Navigation Header -->
     <header class="topbar">
       <div class="topbar-inner">
@@ -67,11 +287,6 @@
             <span class="badge-count" id="notifCount">2</span>
           </button>
 
-          <!-- Sign In Trigger (Shown when LOGGED OUT) -->
-          <button class="btn btn-primary btn-sm btn-otp-nav show-when-logged-out" id="headerAuthBtn" onclick="app.openAuthModal()">
-            <span class="btn-icon">📱</span>
-            <span class="btn-text">Sign In</span>
-          </button>
 
           <!-- User Avatar Profile Chip with Dropdown (Shown when LOGGED IN) -->
           <div class="user-chip-wrap show-when-logged-in" id="userChipWrap">
@@ -110,7 +325,7 @@
 
               <div class="profile-drop-divider"></div>
 
-              <button type="button" class="profile-drop-item" onclick="app.openAuthModal(); app.toggleProfileDropdown(false);">
+              <button type="button" class="profile-drop-item" onclick="app.logout(); app.toggleProfileDropdown(false);">
                 <span>📱 Switch Mobile Account</span>
               </button>
               <button type="button" class="profile-drop-item text-danger" onclick="app.logout(); app.toggleProfileDropdown(false);">
@@ -324,170 +539,7 @@
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <!-- ================= MOBILE NUMBER + OTP AUTHENTICATION MODULE ================= -->
-  <div class="auth-modal-overlay" id="authModal">
-    <div class="auth-card">
-      <!-- Card Brand Header -->
-      <div class="auth-card-header">
-        <div class="auth-brand-badge">
-          <img src="./assets/mirai-logo.png" alt="Mirai School of Technology Logo Mark" class="auth-brand-logo">
-          <div class="auth-brand-text">
-            <span class="auth-brand-title">MIRAI SCHOOL OF TECHNOLOGY</span>
-            <span class="auth-brand-sub">Course Progression Platform</span>
-          </div>
-        </div>
-        <button type="button" class="auth-close-btn" id="authCloseBtn" onclick="app.closeAuthModal()" title="Close / Explore as Demo Guest">×</button>
-      </div>
-
-      <div class="auth-card-body">
-        <!-- STEP 1: MOBILE NUMBER INPUT -->
-        <div class="auth-step active" id="authStepPhone">
-          <div class="auth-step-heading">
-            <h2>Sign in with Mobile OTP</h2>
-            <p>Enter your 10-digit registered mobile number to receive an instant authentication passcode.</p>
-          </div>
-
-          <form id="phoneForm" onsubmit="event.preventDefault(); app.sendOtp();">
-            <div class="form-group">
-              <label class="form-label" for="phoneInput">Mobile Number</label>
-              <div class="phone-input-wrap">
-                <div class="country-code-pill">
-                  <span class="flag-icon">🇮🇳</span>
-                  <select id="countryCodeSelect" class="country-select" aria-label="Country Code">
-                    <option value="+91" selected>+91</option>
-                  </select>
-                </div>
-                <input 
-                  type="tel" 
-                  id="phoneInput" 
-                  class="phone-input" 
-                  placeholder="98765 43210" 
-                  maxlength="10" 
-                  inputmode="numeric" 
-                  pattern="[0-9]{10}"
-                  autocomplete="tel"
-                  required
-                >
-              </div>
-              <span class="form-hint">Enter your standard 10-digit mobile number</span>
-            </div>
-
-            <!-- Demo Role Fast-Fill Pills -->
-            <div class="demo-numbers-box">
-              <span class="demo-box-label">⚡ 1-Tap Demo Test Numbers:</span>
-              <div class="demo-pills-grid">
-                <button type="button" class="demo-pill" onclick="app.fillDemoPhone('9876543210', 'Admin')">
-                  <span class="pill-role">Admin</span>
-                  <span class="pill-phone">9876543210</span>
-                </button>
-                <button type="button" class="demo-pill" onclick="app.fillDemoPhone('9876543211', 'Campus Mgr')">
-                  <span class="pill-role">Campus Mgr</span>
-                  <span class="pill-phone">9876543211</span>
-                </button>
-                <button type="button" class="demo-pill" onclick="app.fillDemoPhone('9876543212', 'Faculty')">
-                  <span class="pill-role">Faculty</span>
-                  <span class="pill-phone">9876543212</span>
-                </button>
-                <button type="button" class="demo-pill" onclick="app.fillDemoPhone('9876543213', 'Student')">
-                  <span class="pill-role">Student</span>
-                  <span class="pill-phone">9876543213</span>
-                </button>
-              </div>
-            </div>
-
-            <button type="submit" class="btn btn-primary btn-auth-submit" id="btnGetOtp">
-              <span class="btn-text">Get OTP (Compulsory Mobile Step)</span>
-              <span class="btn-arrow">→</span>
-            </button>
-
-            <!-- Optional Email Sign-In via Google OAuth -->
-            <div class="auth-divider">
-              <span>OR (OPTIONAL EMAIL LOGIN)</span>
-            </div>
-
-            <div class="google-auth-box">
-              <button type="button" class="btn-google-custom" id="customGoogleBtn" onclick="app.signInWithGoogle()">
-                <svg width="18" height="18" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
-                  <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
-                  <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
-                  <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
-                </svg>
-                <span>Continue with Google (Optional Email)</span>
-              </button>
-
-              <!-- Optional GSI Button Slot -->
-              <div id="googleGsiButton" class="google-gsi-slot"></div>
-
-              <!-- Linked Google Email Badge -->
-              <div class="google-linked-status" id="googleLinkedStatus" style="display: none;">
-                <span class="status-icon">✓</span>
-                <span class="status-text">Google email linked: <strong id="googleLinkedEmailText"></strong></span>
-                <button type="button" class="btn-unlink-google" onclick="app.unlinkGoogle()" title="Unlink Google Account">✕</button>
-              </div>
-
-              <p class="google-hint-text">
-                <span class="badge-compulsory">NOTE:</span> Mobile number OTP is <strong>compulsory</strong>. Google email sign-in is <strong>optional</strong>.
-              </p>
-            </div>
-          </form>
-        </div>
-
-        <!-- STEP 2: OTP VERIFICATION -->
-        <div class="auth-step" id="authStepOtp" style="display: none;">
-          <div class="auth-step-heading">
-            <h2>Enter 6-Digit OTP</h2>
-            <div class="phone-display-row">
-              <span>Code sent to <strong>+91 <span id="displayOtpPhone">98765 43210</span></strong></span>
-              <button type="button" class="btn-link-edit" onclick="app.editPhoneStep()">✏️ Change</button>
-            </div>
-          </div>
-
-          <div class="demo-otp-callout" id="demoOtpBanner">
-            <div class="demo-callout-icon">💡</div>
-            <div class="demo-callout-content">
-              <strong>Demo Mode:</strong>
-              <span>Your verification OTP is <code class="otp-highlight">123456</code></span>
-            </div>
-            <button type="button" class="btn-quick-fill-otp" onclick="app.autoFillDemoOtp()">Auto-Fill</button>
-          </div>
-
-          <form id="otpForm" onsubmit="event.preventDefault(); app.verifyOtp();">
-            <div class="form-group">
-              <label class="form-label" for="otpBox0">Verification Code</label>
-              <div class="otp-digits-container" id="otpDigitsContainer">
-                <input type="text" maxlength="1" inputmode="numeric" class="otp-box" id="otpBox0" data-index="0" autocomplete="off">
-                <input type="text" maxlength="1" inputmode="numeric" class="otp-box" id="otpBox1" data-index="1" autocomplete="off">
-                <input type="text" maxlength="1" inputmode="numeric" class="otp-box" id="otpBox2" data-index="2" autocomplete="off">
-                <input type="text" maxlength="1" inputmode="numeric" class="otp-box" id="otpBox3" data-index="3" autocomplete="off">
-                <input type="text" maxlength="1" inputmode="numeric" class="otp-box" id="otpBox4" data-index="4" autocomplete="off">
-                <input type="text" maxlength="1" inputmode="numeric" class="otp-box" id="otpBox5" data-index="5" autocomplete="off">
-              </div>
-            </div>
-
-            <div class="otp-resend-row">
-              <span id="resendCountdownText">Resend available in <strong id="resendTimer">30s</strong></span>
-              <button type="button" class="btn-resend-link" id="btnResendOtp" disabled onclick="app.resendOtp()">Resend Code</button>
-            </div>
-
-            <button type="submit" class="btn btn-primary btn-auth-submit" id="btnVerifyOtp">
-              <span class="btn-text">Verify & Login</span>
-              <span class="btn-check">✓</span>
-            </button>
-
-            <div class="auth-back-link">
-              <button type="button" class="btn-link" onclick="app.editPhoneStep()">← Back to Mobile Number</button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <div class="auth-card-footer">
-        <span>🔒 Secure MSOT Academic Single Sign-On • Zero SMS Charges</span>
-      </div>
-    </div>
-  </div>
-
+  <!-- Application Engine Script -->
   <script type="module" src="./app.js"></script>
 </body>
 </html>
