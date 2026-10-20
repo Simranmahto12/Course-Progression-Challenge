@@ -710,13 +710,19 @@ class AppStore {
     this.selectedTrack = 'track-mirai';
     this.isBackendConnected = false;
     this.charts = {};
+    let savedUser = null;
+    try {
+      if (typeof localStorage !== 'undefined' && localStorage.getItem('msot_user')) {
+        savedUser = JSON.parse(localStorage.getItem('msot_user'));
+      }
+    } catch {
+      savedUser = null;
+    }
     this.auth = {
       phone: '',
       demoOtp: '123456',
       token: (typeof localStorage !== 'undefined' ? localStorage.getItem('msot_auth_token') : null) || null,
-      user: (typeof localStorage !== 'undefined' && localStorage.getItem('msot_user'))
-        ? JSON.parse(localStorage.getItem('msot_user'))
-        : null,
+      user: savedUser,
       googleProfile: null,
       googleClientId: '601818746857-dh3skj3lmbnpn6hpmu6dg40r9hnpodh0.apps.googleusercontent.com',
       resendTimer: null,
@@ -2635,8 +2641,6 @@ class AppStore {
       this.loadHonorariumReports();
     }
   }
-    `;
-  }
 
   // 6. TIMETABLE VIEW
   renderTimetableView(container) {
@@ -2964,6 +2968,9 @@ class AppStore {
             boxes[idx + 1].select();
           } else {
             document.getElementById('btnVerifyOtp')?.focus();
+            if (this.getEnteredOtp().length === 6) {
+              setTimeout(() => this.verifyOtp(), 150);
+            }
           }
         } else {
           e.target.classList.remove('filled');
@@ -2996,6 +3003,7 @@ class AppStore {
           }
           if (digits.length === 6) {
             document.getElementById('btnVerifyOtp')?.focus();
+            setTimeout(() => this.verifyOtp(), 150);
           } else if (boxes[digits.length]) {
             boxes[digits.length].focus();
           }
@@ -3179,6 +3187,9 @@ class AppStore {
       input.value = phone;
       input.focus();
     }
+    document.querySelectorAll('.demo-pill').forEach((btn) => {
+      btn.classList.toggle('active', btn.textContent.includes(phone));
+    });
     this.showToast(`Selected Demo ${roleName} (${phone})`);
   }
 
@@ -3257,7 +3268,7 @@ class AppStore {
   }
 
   autoFillDemoOtp() {
-    const demo = '123456';
+    const demo = this.auth?.demoOtp || '123456';
     for (let i = 0; i < 6; i++) {
       const box = document.getElementById(`otpBox${i}`);
       if (box) {
@@ -3265,8 +3276,10 @@ class AppStore {
         box.classList.add('filled');
       }
     }
-    document.getElementById('btnVerifyOtp')?.focus();
-    this.showToast('Auto-filled Demo OTP: 123456');
+    const btn = document.getElementById('btnVerifyOtp');
+    if (btn) btn.focus();
+    this.showToast(`Auto-filled Demo OTP: ${demo}`);
+    setTimeout(() => this.verifyOtp(), 200);
   }
 
   getEnteredOtp() {
@@ -3287,9 +3300,18 @@ class AppStore {
       return;
     }
 
+    // Ensure phone is populated
+    if (!this.auth.phone) {
+      const phoneInput = document.getElementById('phoneInput');
+      if (phoneInput && phoneInput.value) {
+        const digitsOnly = phoneInput.value.replace(/\D/g, '');
+        this.auth.phone = digitsOnly.length > 10 ? digitsOnly.slice(-10) : digitsOnly;
+      }
+    }
+
     if (btn) {
       btn.disabled = true;
-      btn.innerHTML = `<span class="btn-text">Verifying...</span>`;
+      btn.innerHTML = `<span class="btn-text">Verifying Passcode...</span>`;
     }
 
     try {
@@ -3319,7 +3341,7 @@ class AppStore {
             user: { ...userObj, phone: this.auth.phone, roleDisplay: role.toUpperCase() },
           };
         } else {
-          data = { success: false, error: 'Invalid OTP. Please enter 123456.' };
+          data = { success: false, error: 'Invalid OTP. For demo mode, enter 123456.' };
         }
       }
 
@@ -3348,19 +3370,24 @@ class AppStore {
         const googleNote = data.user.googleLinked ? ` (Google: ${data.user.email})` : '';
         this.showToast(`Verified! Welcome ${data.user.name} [${data.user.roleDisplay || role.toUpperCase()}]${googleNote}`);
       } else {
-        this.showToast(data?.error || 'Invalid OTP. Please enter 123456.', 'error');
+        this.showToast(data?.error || 'Invalid OTP. For demo mode, enter 123456.', 'error');
         const container = document.getElementById('otpDigitsContainer');
         if (container) {
           container.style.animation = 'shake 0.4s ease';
           setTimeout(() => (container.style.animation = ''), 400);
         }
+        document.querySelectorAll('.otp-box').forEach((box) => {
+          box.value = '';
+          box.classList.remove('filled');
+        });
+        setTimeout(() => document.getElementById('otpBox0')?.focus(), 150);
       }
     } catch (err) {
       this.showToast('Verification failed. Try again.', 'error');
     } finally {
       if (btn) {
         btn.disabled = false;
-        btn.innerHTML = `<span class="btn-text">Verify & Login</span><span class="btn-check">✓</span>`;
+        btn.innerHTML = `<span class="btn-text">Verify & Enter Platform</span><span class="btn-check">✓</span>`;
       }
     }
   }
