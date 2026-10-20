@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { db } from '../db.js';
+import { LlmClient } from './llmClient.js';
 
 export class AiLogParser {
   /**
@@ -93,30 +94,51 @@ export class AiLogParser {
       };
     }
 
-    // 3. Match Subject from Message Text
+    // Optional LLM-assisted Pre-Parsing (Google Gemini / Ollama)
+    let llmResult = null;
+    try {
+      llmResult = await LlmClient.parseSessionMessage({
+        text: cleanText,
+        facultyName: faculty.name,
+        assignedSubjects,
+      });
+    } catch {
+      llmResult = null;
+    }
+
+    // 3. Match Subject from Message Text or LLM Parse
     let matchedSubject = null;
     let subjectMatchScore = 0;
 
-    for (const sub of assignedSubjects) {
-      const subNameLower = sub.name.toLowerCase();
-      const subCodeLower = sub.code.toLowerCase();
-      const textLower = cleanText.toLowerCase();
+    if (llmResult?.subjectCode) {
+      matchedSubject = assignedSubjects.find(
+        (s) => s.code.toLowerCase() === llmResult.subjectCode.toLowerCase()
+      );
+      if (matchedSubject) subjectMatchScore = 0.95;
+    }
 
-      // Check code or full name
-      if (textLower.includes(subCodeLower)) {
-        matchedSubject = sub;
-        subjectMatchScore = 1.0;
-        break;
-      }
+    if (!matchedSubject) {
+      for (const sub of assignedSubjects) {
+        const subNameLower = sub.name.toLowerCase();
+        const subCodeLower = sub.code.toLowerCase();
+        const textLower = cleanText.toLowerCase();
 
-      // Check key subject words
-      const keywords = subNameLower.split(/[\s,–-]+/).filter((w) => w.length > 2);
-      const matchedKeywords = keywords.filter((kw) => textLower.includes(kw));
-      const score = matchedKeywords.length / Math.max(1, keywords.length);
+        // Check code or full name
+        if (textLower.includes(subCodeLower)) {
+          matchedSubject = sub;
+          subjectMatchScore = 1.0;
+          break;
+        }
 
-      if (score > subjectMatchScore && score >= 0.5) {
-        matchedSubject = sub;
-        subjectMatchScore = score;
+        // Check key subject words
+        const keywords = subNameLower.split(/[\s,–-]+/).filter((w) => w.length > 2);
+        const matchedKeywords = keywords.filter((kw) => textLower.includes(kw));
+        const score = matchedKeywords.length / Math.max(1, keywords.length);
+
+        if (score > subjectMatchScore && score >= 0.5) {
+          matchedSubject = sub;
+          subjectMatchScore = score;
+        }
       }
     }
 

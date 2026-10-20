@@ -4261,11 +4261,12 @@ class AppStore {
               ${googleAccount ? `
                 <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">
                   Account: <strong>${googleAccount.external_account_id}</strong><br>
+                  ${googleCfg.hasApiKey ? `<span style="color: var(--color-success); font-weight: 700;">🔑 Google Calendar API Key: ${googleCfg.apiKeyMasked}</span><br>` : ''}
                   Last Synced: ${googleAccount.last_sync_at ? new Date(googleAccount.last_sync_at).toLocaleString() : 'Never'}
                 </div>
               ` : `
                 <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">
-                  ${googleCfg.isMockMode ? '⚡ Local Dev/Mock Mode Active' : (googleCfg.configured ? 'Server credentials ready' : 'Requires GOOGLE_CLIENT_ID in .env')}
+                  ${googleCfg.hasApiKey ? `<span style="color: var(--color-success); font-weight: 700;">🔑 Google Calendar API Key Configured (${googleCfg.apiKeyMasked})</span>` : (googleCfg.isMockMode ? '⚡ Local Dev/Mock Mode Active' : (googleCfg.configured ? 'Server credentials ready' : 'Requires GOOGLE_CALENDAR_API_KEY in .env'))}
                 </div>
               `}
             </div>

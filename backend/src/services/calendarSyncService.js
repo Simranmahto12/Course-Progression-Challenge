@@ -6,8 +6,10 @@ export class CalendarSyncService {
    * Return server-side configuration status and setup instructions for providers
    */
   static getProviderConfigStatus() {
+    const googleApiKey = process.env.GOOGLE_CALENDAR_API_KEY || process.env.GOOGLE_API_KEY;
     const isGoogleConfigured = Boolean(
-      process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+      googleApiKey ||
+      (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)
     );
     const isOutlookConfigured = Boolean(
       process.env.OUTLOOK_CLIENT_ID && process.env.OUTLOOK_CLIENT_SECRET
@@ -20,12 +22,14 @@ export class CalendarSyncService {
         name: 'Google Calendar',
         configured: isGoogleConfigured || isDevMock,
         isMockMode: !isGoogleConfigured && isDevMock,
+        hasApiKey: Boolean(googleApiKey),
+        apiKeyMasked: googleApiKey ? `${googleApiKey.slice(0, 8)}...${googleApiKey.slice(-4)}` : null,
         scopes: ['https://www.googleapis.com/auth/calendar.events'],
         setupGuide: {
           step1: 'Navigate to Google Cloud Console (console.cloud.google.com).',
           step2: 'Enable the Google Calendar API for your project.',
-          step3: 'Configure OAuth 2.0 Client credentials (Authorized redirect URI: /api/calendar-sync/oauth/callback).',
-          step4: 'Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to backend/.env.',
+          step3: 'Configure OAuth 2.0 Client credentials or set GOOGLE_CALENDAR_API_KEY.',
+          step4: 'Add credentials to backend/.env.',
         },
       },
       outlook: {
