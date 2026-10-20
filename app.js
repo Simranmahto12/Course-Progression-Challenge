@@ -714,9 +714,14 @@ class AppStore {
       phone: '',
       demoOtp: '123456',
       token: (typeof localStorage !== 'undefined' ? localStorage.getItem('msot_auth_token') : null) || null,
-      user: (typeof localStorage !== 'undefined' && localStorage.getItem('msot_user'))
-        ? JSON.parse(localStorage.getItem('msot_user'))
-        : null,
+      user: (() => {
+        try {
+          const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('msot_user') : null;
+          return raw ? JSON.parse(raw) : null;
+        } catch {
+          return null;
+        }
+      })(),
       googleProfile: null,
       googleClientId: '601818746857-dh3skj3lmbnpn6hpmu6dg40r9hnpodh0.apps.googleusercontent.com',
       resendTimer: null,
@@ -933,7 +938,9 @@ class AppStore {
     }
     const campName = campObj?.name || 'HI-Tech';
     this.showToast(`Switched workspace to ${campName}`);
-    this.render();
+    if (this.isAuthenticated()) {
+      this.render();
+    }
   }
 
   setTrack(trackId) {
@@ -1723,6 +1730,13 @@ class AppStore {
           this.renderExamReadinessView(container);
         }
         break;
+      case 'student':
+        if (this.selectedCampus !== 'camp-hitech') {
+          this.renderCampusIsolationView(container);
+        } else {
+          this.renderStudentDashboard(container);
+        }
+        break;
       case 'alerts':
         this.renderAlertsView(container);
         break;
@@ -2248,6 +2262,7 @@ class AppStore {
                       <th>Planned</th>
                       <th>Exam Scope</th>
                       <th>Status</th>
+                      <th style="text-align: right;">Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2262,6 +2277,11 @@ class AppStore {
                           <span style="font-size: 0.78rem; font-weight: 700; color: ${t.status === 'COMPLETED' ? 'var(--color-success)' : (t.status === 'IN_PROGRESS' ? 'var(--color-accent)' : 'var(--color-text-muted)')};">
                             ${t.status === 'COMPLETED' ? '✓ Completed' : (t.status === 'IN_PROGRESS' ? `In Progress (${t.percentageComplete}%)` : 'Pending')}
                           </span>
+                        </td>
+                        <td style="text-align: right;">
+                          <button type="button" class="btn btn-secondary btn-sm" style="padding: 0.2rem 0.55rem; font-size: 0.72rem;" onclick="app.openLessonPlanModal('${t.id}')">
+                            📝 Plan
+                          </button>
                         </td>
                       </tr>
                     `).join('')}
@@ -2380,7 +2400,8 @@ class AppStore {
           <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--color-navy);">Institutional Alerts & Escalation Desk</h2>
           <p style="font-size: 0.82rem; color: var(--color-text-secondary);">Missing session logging reminders, >48-hour manager escalations, and syllabus bottleneck alerts.</p>
         </div>
-        <div style="display: flex; gap: 0.5rem;">
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <button class="btn btn-secondary btn-sm" onclick="app.openModal('alertConfigModal')">⚙️ Dispatch Channels</button>
           <span class="badge badge-danger">${alerts.filter((a) => a.level === 'danger').length} Critical</span>
           <span class="badge badge-tight">${alerts.filter((a) => a.level === 'warning').length} Reminders</span>
         </div>
@@ -2635,7 +2656,385 @@ class AppStore {
       this.loadHonorariumReports();
     }
   }
-    `;
+
+  // ==========================================================================
+  // PEDAGOGICAL LESSON PLANS & TIMETABLE / ALERT MODAL ACTIONS
+  // ==========================================================================
+
+  async openLessonPlanModal(topicId) {
+    let topic = null;
+    let subject = null;
+    for (const sub of this.state.subjects) {
+      const found = (sub.topics || []).find((t) => t.id === topicId);
+      if (found) {
+        topic = found;
+        subject = sub;
+        break;
+      }
+    }
+
+    if (!topic) {
+      this.showToast('Topic not found', 'error');
+      return;
+    }
+
+    const setVal = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.value = val || '';
+    };
+
+    setVal('lpTopicId', topic.id);
+    const titleEl = document.getElementById('lpModalTitle');
+    if (titleEl) titleEl.textContent = `Pedagogical Lesson Plan: ${topic.name}`;
+    const subContext = document.getElementById('lpSubjectContext');
+    if (subContext) subContext.textContent = `Course: ${subject?.name || 'Academic Subject'} (${subject?.code || ''})`;
+    const unitContext = document.getElementById('lpUnitContext');
+    if (unitContext) unitContext.textContent = `Unit: ${topic.unit} • Topic #${topic.sequence} (${topic.plannedHours} hrs)`;
+
+    const banner = document.getElementById('lpDraftBanner');
+    const badge = document.getElementById('lpStatusBadge');
+    const status = topic.lessonPlanStatus || 'DRAFT';
+    if (banner) banner.textContent = `Status: ${status}`;
+    if (badge) badge.textContent = status;
+
+    setVal('lpLearningOutcomes', topic.learningOutcomes || `CO: Master core concepts of ${topic.name} with applied problem solving (Bloom KL: K3)`);
+    setVal('lpDiagnosticQuestion', topic.diagnosticQuestion || `Recall previous prerequisites relevant to ${topic.name}`);
+    setVal('lpConceptExplanation', topic.conceptExplanation || `Formal definition, theoretical foundations and system mechanics of ${topic.name}`);
+    setVal('lpWorkedExample', topic.workedExample || `Step-by-step instructor demonstration and algorithmic solution for ${topic.name}`);
+    setVal('lpGuidedPractice', topic.guidedPractice || `Paired student exercise: implement and test ${topic.name} sample case.`);
+    setVal('lpIndependentApplication', topic.independentApplication || `Independent problem / lab challenge verifying understanding of ${topic.name}`);
+    setVal('lpTeachingMethod', topic.teachingMethod || 'INTERACTIVE_LECTURE');
+    setVal('lpEquipmentSafety', topic.equipmentSafetyNotes || 'Standard computing lab / terminal environment');
+    setVal('lpInclusiveOptions', topic.inclusiveOptions || 'Scaffolded starter code and hints for self-paced learning');
+    setVal('lpFormativeCheck', topic.formativeCheck || 'End-of-class 3-minute concept check or exit poll');
+    setVal('lpApprovedExamScope', topic.examScope || topic.approvedExamScope || 'BOTH');
+
+    // Admin Review controls
+    const isAdmin = this.currentRole === 'admin' || this.currentRole === 'campus_manager';
+    const btnRev = document.getElementById('btnRequestLpRevision');
+    const btnAppr = document.getElementById('btnApproveLp');
+    if (btnRev) btnRev.style.display = isAdmin ? 'inline-flex' : 'none';
+    if (btnAppr) btnAppr.style.display = isAdmin ? 'inline-flex' : 'none';
+
+    // Fetch live backend data if available
+    try {
+      const headers = this.auth?.token ? { 'Authorization': `Bearer ${this.auth.token}` } : {};
+      const res = await fetch(`${API_BASE}/subjects/topics/${topicId}/lesson-plan`, { headers });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.topic) {
+          const t = data.topic;
+          setVal('lpLearningOutcomes', t.learningOutcomes || t.learning_outcomes);
+          setVal('lpDiagnosticQuestion', t.diagnosticQuestion || t.diagnostic_question);
+          setVal('lpConceptExplanation', t.conceptExplanation || t.concept_explanation);
+          setVal('lpWorkedExample', t.workedExample || t.worked_example);
+          setVal('lpGuidedPractice', t.guidedPractice || t.guided_practice);
+          setVal('lpIndependentApplication', t.independentApplication || t.independent_application);
+          setVal('lpTeachingMethod', t.teachingMethod || t.teaching_method);
+          setVal('lpEquipmentSafety', t.equipmentSafetyNotes || t.equipment_safety_notes);
+          setVal('lpInclusiveOptions', t.inclusiveOptions || t.inclusive_options);
+          setVal('lpFormativeCheck', t.formativeCheck || t.formative_check);
+          setVal('lpApprovedExamScope', t.approvedExamScope || t.approved_exam_scope || t.examScope);
+          const curStatus = t.lessonPlanStatus || t.lesson_plan_status || status;
+          if (banner) banner.textContent = `Status: ${curStatus}`;
+          if (badge) badge.textContent = curStatus;
+        }
+
+        const histList = document.getElementById('lpVersionHistoryList');
+        if (histList) {
+          if (data.versions && data.versions.length > 0) {
+            histList.innerHTML = data.versions.map((v) => `
+              <div style="display: flex; justify-content: space-between; padding: 0.35rem 0; border-bottom: 1px dashed var(--color-border);">
+                <span><strong>v${v.version}</strong> (${v.status || 'DRAFT'}) by ${v.edited_by || 'Faculty'}</span>
+                <span>${v.edited_at ? new Date(v.edited_at).toLocaleDateString() : 'Recent'}</span>
+              </div>
+            `).join('');
+          } else {
+            histList.innerHTML = '<div>Active version v1.0 (Faculty Draft)</div>';
+          }
+        }
+      }
+    } catch (err) {
+      const histList = document.getElementById('lpVersionHistoryList');
+      if (histList) histList.innerHTML = '<div>Active offline draft version v1.0</div>';
+    }
+
+    this.openModal('lessonPlanModal');
+  }
+
+  async saveLessonPlan() {
+    const topicId = document.getElementById('lpTopicId')?.value;
+    if (!topicId) return;
+
+    const payload = {
+      learning_outcomes: document.getElementById('lpLearningOutcomes')?.value || '',
+      diagnostic_question: document.getElementById('lpDiagnosticQuestion')?.value || '',
+      concept_explanation: document.getElementById('lpConceptExplanation')?.value || '',
+      worked_example: document.getElementById('lpWorkedExample')?.value || '',
+      guided_practice: document.getElementById('lpGuidedPractice')?.value || '',
+      independent_application: document.getElementById('lpIndependentApplication')?.value || '',
+      teaching_method: document.getElementById('lpTeachingMethod')?.value || 'INTERACTIVE_LECTURE',
+      equipment_safety_notes: document.getElementById('lpEquipmentSafety')?.value || '',
+      inclusive_options: document.getElementById('lpInclusiveOptions')?.value || '',
+      formative_check: document.getElementById('lpFormativeCheck')?.value || '',
+      approved_exam_scope: document.getElementById('lpApprovedExamScope')?.value || 'BOTH',
+    };
+
+    // Update local state
+    for (const sub of this.state.subjects) {
+      const topic = (sub.topics || []).find((t) => t.id === topicId);
+      if (topic) {
+        topic.learningOutcomes = payload.learning_outcomes;
+        topic.diagnosticQuestion = payload.diagnostic_question;
+        topic.conceptExplanation = payload.concept_explanation;
+        topic.workedExample = payload.worked_example;
+        topic.guidedPractice = payload.guided_practice;
+        topic.independentApplication = payload.independent_application;
+        topic.teachingMethod = payload.teaching_method;
+        topic.equipmentSafetyNotes = payload.equipment_safety_notes;
+        topic.inclusiveOptions = payload.inclusive_options;
+        topic.formativeCheck = payload.formative_check;
+        topic.examScope = payload.approved_exam_scope;
+        topic.lessonPlanStatus = 'PENDING_REVIEW';
+        break;
+      }
+    }
+
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(this.auth?.token ? { 'Authorization': `Bearer ${this.auth.token}` } : {})
+      };
+      await fetch(`${API_BASE}/subjects/topics/${topicId}/lesson-plan`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(payload),
+      });
+    } catch (e) {
+      console.warn('Backend lesson plan save notice:', e);
+    }
+
+    this.closeModal('lessonPlanModal');
+    this.showToast('Lesson plan submitted for review.');
+    this.render();
+  }
+
+  async reviewLessonPlan(status) {
+    const topicId = document.getElementById('lpTopicId')?.value;
+    if (!topicId) return;
+
+    for (const sub of this.state.subjects) {
+      const topic = (sub.topics || []).find((t) => t.id === topicId);
+      if (topic) {
+        topic.lessonPlanStatus = status;
+        break;
+      }
+    }
+
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(this.auth?.token ? { 'Authorization': `Bearer ${this.auth.token}` } : {})
+      };
+      await fetch(`${API_BASE}/subjects/topics/${topicId}/review`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ status, reviewer_notes: `Reviewed by ${this.auth.user?.name || this.currentRole}` }),
+      });
+    } catch (e) {
+      console.warn('Backend review notice:', e);
+    }
+
+    this.closeModal('lessonPlanModal');
+    this.showToast(`Lesson plan marked as ${status}.`);
+    this.render();
+  }
+
+  openAddTimetableSlotModal() {
+    const isAktu = this.selectedTrack === 'track-aktu';
+    const subSelect = document.getElementById('ttSubjectSelect');
+    if (subSelect) {
+      const eligibleSubjects = this.state.subjects.filter((s) => {
+        if (isAktu) return s.trackId === 'track-aktu' || s.trackName === 'AKTU Track';
+        return s.trackId === 'track-mirai' || s.trackName === 'Mirai Track' || !s.trackId;
+      });
+      subSelect.innerHTML = eligibleSubjects.map((s) => `<option value="${s.id}">${s.name} (${s.code || ''})</option>`).join('');
+    }
+
+    const banner = document.getElementById('timetableConflictBanner');
+    if (banner) banner.style.display = 'none';
+
+    this.openModal('addTimetableSlotModal');
+  }
+
+  async saveTimetableSlot() {
+    const subjectId = document.getElementById('ttSubjectSelect')?.value;
+    const batchId = document.getElementById('ttBatchSelect')?.value || 'batch-hitech-mirai';
+    const facultyId = document.getElementById('ttFacultySelect')?.value || 'usr-fac-sharma';
+    const dayOfWeek = document.getElementById('ttDaySelect')?.value || 'Monday';
+    const startTime = document.getElementById('ttStartTime')?.value || '09:00';
+    const endTime = document.getElementById('ttEndTime')?.value || '10:30';
+    const room = document.getElementById('ttRoom')?.value || 'Room 101';
+
+    const parseMins = (t) => {
+      const [h, m] = t.split(':').map(Number);
+      return h * 60 + m;
+    };
+    const sStart = parseMins(startTime);
+    const sEnd = parseMins(endTime);
+
+    const collision = this.state.timetables.find((t) => {
+      if (t.dayOfWeek !== dayOfWeek) return false;
+      const tStart = parseMins(t.startTime);
+      const tEnd = parseMins(t.endTime);
+      const overlaps = Math.max(sStart, tStart) < Math.min(sEnd, tEnd);
+      if (!overlaps) return false;
+
+      if (t.facultyId && t.facultyId === facultyId) return true;
+      if (t.room && room && t.room.toLowerCase() === room.toLowerCase()) return true;
+      return false;
+    });
+
+    const banner = document.getElementById('timetableConflictBanner');
+    const bannerMsg = document.getElementById('conflictBannerMsg');
+
+    if (collision) {
+      if (banner && bannerMsg) {
+        banner.style.display = 'flex';
+        bannerMsg.textContent = `Schedule collision: ${collision.dayOfWeek} ${collision.startTime}-${collision.endTime} in ${collision.room || 'same room'}. Please adjust the slot time or room.`;
+      }
+      return;
+    }
+
+    const newSlot = {
+      id: `tt-${Date.now()}`,
+      subjectId,
+      batchId,
+      facultyId,
+      dayOfWeek,
+      startTime,
+      endTime,
+      room,
+    };
+
+    this.state.timetables.push(newSlot);
+
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(this.auth?.token ? { 'Authorization': `Bearer ${this.auth.token}` } : {})
+      };
+      await fetch(`${API_BASE}/timetable`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(newSlot),
+      });
+    } catch (e) {
+      console.warn('Backend timetable save notice:', e);
+    }
+
+    this.closeModal('addTimetableSlotModal');
+    this.showToast(`Timetable slot added for ${dayOfWeek} (${startTime} - ${endTime})`);
+    this.render();
+  }
+
+  async saveAlertConfig() {
+    const inApp = document.getElementById('cfgInApp')?.checked;
+    const email = document.getElementById('cfgEmail')?.checked;
+    const webhook = document.getElementById('cfgWebhook')?.checked;
+    const webhookUrl = document.getElementById('cfgWebhookUrl')?.value;
+    const escalationHours = Number(document.getElementById('cfgEscalationHours')?.value || 48);
+
+    const config = {
+      inApp: Boolean(inApp),
+      email: Boolean(email),
+      webhook: Boolean(webhook),
+      webhookUrl: webhookUrl || '',
+      escalationHours,
+    };
+
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(this.auth?.token ? { 'Authorization': `Bearer ${this.auth.token}` } : {})
+      };
+      await fetch(`${API_BASE}/alerts/config`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(config),
+      });
+    } catch (e) {
+      console.warn('Backend alert config notice:', e);
+    }
+
+    this.closeModal('alertConfigModal');
+    this.showToast('Alert notification dispatch channels configured successfully.');
+  }
+
+  openAlternativesModal() {
+    const body = document.getElementById('alternativesModalBody');
+    if (body) {
+      body.innerHTML = `
+        <div class="card" style="padding: 1rem; border-left: 4px solid var(--color-accent); margin-bottom: 0.75rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <strong style="color: var(--color-navy); font-size: 0.95rem;">Group 1: Computing vs Chemical Sciences</strong>
+              <div style="font-size: 0.8rem; color: var(--color-text-secondary); margin-top: 0.2rem;">
+                Pair: Programming for Problem Solving (BCS-101) &amp; Engineering Chemistry (BAS-102)
+              </div>
+            </div>
+            <span class="badge badge-success">Configured Active</span>
+          </div>
+        </div>
+        <div class="card" style="padding: 1rem; border-left: 4px solid #10b981;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <strong style="color: var(--color-navy); font-size: 0.95rem;">Group 2: Electrical vs Mechanical Sciences</strong>
+              <div style="font-size: 0.8rem; color: var(--color-text-secondary); margin-top: 0.2rem;">
+                Pair: Basic Electrical Engineering (BEE-101) &amp; Fundamental of Mechanical Engineering (BME-101)
+              </div>
+            </div>
+            <span class="badge badge-success">Configured Active</span>
+          </div>
+        </div>
+      `;
+    }
+    this.openModal('alternativesConfigModal');
+  }
+
+  async openDateAuditModal() {
+    const body = document.getElementById('dateAuditModalBody');
+    if (body) {
+      body.innerHTML = '<div style="font-size: 0.82rem; color: var(--color-text-muted);">Fetching automatic calendar movement audit trail...</div>';
+      try {
+        const headers = this.auth?.token ? { 'Authorization': `Bearer ${this.auth.token}` } : {};
+        const res = await fetch(`${API_BASE}/subjects/date-audit`, { headers });
+        if (res.ok) {
+          const data = await res.json();
+          const logs = data.auditLogs || [];
+          if (logs.length > 0) {
+            body.innerHTML = logs.map((log) => `
+              <div style="padding: 0.75rem; border-bottom: 1px solid var(--color-border); font-size: 0.82rem;">
+                <div style="display: flex; justify-content: space-between;">
+                  <strong style="color: var(--color-navy);">${log.reason || 'Calendar Adjustment'}</strong>
+                  <span style="color: var(--color-text-muted);">${log.timestamp || 'Recent'}</span>
+                </div>
+                <div style="margin-top: 0.25rem; color: var(--color-text-secondary);">
+                  Shifted date from <code>${log.originalDate || 'Original'}</code> to <code>${log.adjustedDate || 'Adjusted'}</code>
+                </div>
+              </div>
+            `).join('');
+          } else {
+            body.innerHTML = '<div style="padding: 1rem; text-align: center; color: var(--color-text-muted);">No calendar movement anomalies recorded. All topic delivery dates align with working Saturdays.</div>';
+          }
+        } else {
+          throw new Error('Audit route response was not ok');
+        }
+      } catch (e) {
+        body.innerHTML = '<div style="padding: 1rem; color: var(--color-text-secondary);">Standard deterministic date calculation active: 2nd & 4th Saturdays non-working; planned dates automatically sequenced around Gazetted holidays.</div>';
+      }
+    }
+    this.openModal('dateAuditModal');
   }
 
   // 6. TIMETABLE VIEW
@@ -2649,6 +3048,9 @@ class AppStore {
           <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--color-navy);">Weekly Timetable Schedule</h2>
           <p style="font-size: 0.82rem; color: var(--color-text-secondary);">Interactive weekly teaching grid across Monday to Saturday for HI-Tech campus.</p>
         </div>
+        <button class="btn btn-primary" onclick="app.openAddTimetableSlotModal()">
+          <span>＋ Add Timetable Slot</span>
+        </button>
       </div>
 
       <!-- Distinct Track Switcher Tabs -->
@@ -4027,14 +4429,26 @@ class AppStore {
 }
 
 // Global App Instance
-window.app = new AppStore();
+try {
+  window.app = new AppStore();
+} catch (err) {
+  console.error('Fatal initialization error in AppStore:', err);
+}
 
 // Bootstrap on DOM ready
-document.addEventListener('DOMContentLoaded', () => {
-  window.app.initTheme();
-  window.app.checkBackendConnection();
-  window.app.initAuth();
-  window.app.renderAuthGate();
-});
+function bootstrapApp() {
+  if (window.app) {
+    try { window.app.initTheme(); } catch (e) { console.warn('initTheme error:', e); }
+    try { window.app.checkBackendConnection(); } catch (e) { console.warn('checkBackendConnection error:', e); }
+    try { window.app.initAuth(); } catch (e) { console.warn('initAuth error:', e); }
+    try { window.app.renderAuthGate(); } catch (e) { console.warn('renderAuthGate error:', e); }
+  }
+}
 
-
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootstrapApp);
+  } else {
+    bootstrapApp();
+  }
+}
