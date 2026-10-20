@@ -1658,6 +1658,12 @@ body {
   transform: translateY(-1px);
 }
 
+.demo-pill.active {
+  border-color: var(--color-accent);
+  background: rgba(67, 97, 238, 0.12);
+  box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.25);
+}
+
 .pill-role {
   font-size: 0.74rem;
   font-weight: 700;

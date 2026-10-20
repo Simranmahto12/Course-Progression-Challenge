@@ -9,7 +9,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'mirai_msot_progression_super_secre
 const DEMO_PHONE_MAP = {
     '9876543210': { userId: 'usr-admin', role: 'admin', name: 'Dr. Suresh Varma' },
     '9876543211': { userId: 'usr-mgr-hitech', role: 'campus_manager', name: 'Priya Nair' },
-    '9876543212': { userId: 'usr-fac-sharma', role: 'faculty', name: 'Prof. Rajesh Sharma' },
+    '9876543212': { userId: 'usr-fac-sharma', role: 'faculty', name: 'Vishal Rathee' },
     '9876543213': { userId: 'usr-stu-aarav', role: 'student', name: 'Aarav Mehta' },
 };
 /**
@@ -80,9 +80,9 @@ router.post('/verify-otp', (req, res) => {
         FROM users u
         LEFT JOIN campuses c ON u.campus_id = c.id
         LEFT JOIN batches b ON u.batch_id = b.id
-        WHERE u.id = ? OR LOWER(u.role) = LOWER(?)
+        WHERE u.phone = ? OR u.id = ? OR LOWER(u.role) = LOWER(?)
         LIMIT 1
-      `).get(mapped.userId, mapped.role);
+      `).get(phone, mapped.userId, mapped.role);
         }
         catch {
             // fallback if db query fails
