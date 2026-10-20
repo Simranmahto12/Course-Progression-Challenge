@@ -81,9 +81,9 @@ router.post('/verify-otp', (req, res) => {
         FROM users u
         LEFT JOIN campuses c ON u.campus_id = c.id
         LEFT JOIN batches b ON u.batch_id = b.id
-        WHERE u.id = ? OR LOWER(u.role) = LOWER(?)
+        WHERE u.phone = ? OR u.id = ? OR LOWER(u.role) = LOWER(?)
         LIMIT 1
-      `).get(mapped.userId, mapped.role);
+      `).get(phone, mapped.userId, mapped.role);
         }
         catch {
             // fallback if db query fails
