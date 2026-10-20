@@ -9,7 +9,8 @@ const JWT_SECRET = process.env.JWT_SECRET || 'mirai_msot_progression_super_secre
 const DEMO_PHONE_MAP = {
     '9876543210': { userId: 'usr-admin', role: 'admin', name: 'Dr. Suresh Varma' },
     '9876543211': { userId: 'usr-mgr-hitech', role: 'campus_manager', name: 'Priya Nair' },
-    '9876543212': { userId: 'usr-fac-sharma', role: 'faculty', name: 'Prof. Rajesh Sharma' },
+    '9876543212': { userId: 'usr-fac-sharma', role: 'faculty', name: 'Vishal Rathee' },
+    '9876543220': { userId: 'usr-fac-varun', role: 'faculty', name: 'Varun Kumar Sharma' },
     '9876543213': { userId: 'usr-stu-aarav', role: 'student', name: 'Aarav Mehta' },
 };
 /**

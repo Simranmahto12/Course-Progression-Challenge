@@ -54,6 +54,15 @@ const INITIAL_DATA = {
       campusId: 'camp-hitech',
       campusName: 'HI-Tech Campus',
     },
+    faculty_varun: {
+      id: 'usr-fac-varun',
+      name: 'Varun Kumar Sharma',
+      email: 'faculty.varun@mirai.edu',
+      role: 'FACULTY',
+      initials: 'VS',
+      campusId: 'camp-hitech',
+      campusName: 'HI-Tech Campus',
+    },
     student: {
       id: 'usr-stu-aarav',
       name: 'Aarav Mehta',
@@ -62,12 +71,12 @@ const INITIAL_DATA = {
       initials: 'AM',
       campusId: 'camp-hitech',
       batchId: 'batch-hitech-mirai',
-      batchName: 'HI-Tech AI/ML 2026 Batch A',
+      batchName: 'HI-Tech BTech CSE 2026 Batch A',
     },
   },
   semester: {
     id: 'sem-2026-fall',
-    name: 'BTech CSE (AI/ML) · Fall 2026',
+    name: 'BTech CSE · Semester 1 (Fall 2026)',
     startDate: '2026-08-01',
     endDate: '2026-12-20',
     workingSaturdaysRule: 'SECOND_FOURTH_SATURDAY', // 'ALL_SATURDAYS', 'NO_SATURDAYS', 'SECOND_FOURTH_SATURDAY'
@@ -96,11 +105,11 @@ const INITIAL_DATA = {
   ],
   subjects: [
     // ----------------------------------------------------
-    // HI-TECH · MIRAI TRACK SUBJECTS (3 SUBJECTS)
+    // HI-TECH · MIRAI TRACK SUBJECTS (Semester 1: Vishal Rathee & Varun Kumar Sharma)
     // ----------------------------------------------------
     {
       id: 'sub-dsa',
-      code: 'CS301',
+      code: 'CS101',
       name: 'DSA in C++',
       campusId: 'camp-hitech',
       campusName: 'HI-Tech',
@@ -122,22 +131,19 @@ const INITIAL_DATA = {
         { id: 'top-dsa-6', unit: 'Unit 3: Trees & Traversals', sequence: 6, name: 'Binary Search Trees (BST) & Operations', plannedHours: 4.0, status: 'IN_PROGRESS', percentageComplete: 60, examScope: 'MID_TERM,FINAL', plannedDate: '2026-09-28' },
         { id: 'top-dsa-7', unit: 'Unit 3: Trees & Traversals', sequence: 7, name: 'AVL Trees & Self-Balancing Rotations', plannedHours: 4.0, status: 'PENDING', percentageComplete: 0, examScope: 'MID_TERM,FINAL', plannedDate: '2026-10-08' },
         { id: 'top-dsa-8', unit: 'Unit 4: Heaps & Graphs', sequence: 8, name: 'Binary Heaps & Priority Queues', plannedHours: 4.0, status: 'PENDING', percentageComplete: 0, examScope: 'MID_TERM,FINAL', plannedDate: '2026-10-18' },
-        { id: 'top-dsa-9', unit: 'Unit 4: Heaps & Graphs', sequence: 9, name: 'Graph Representations, BFS & DFS', plannedHours: 5.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL', plannedDate: '2026-11-05' },
-        { id: 'top-dsa-10', unit: 'Unit 4: Heaps & Graphs', sequence: 10, name: 'Dijkstra & Shortest Path Algorithms', plannedHours: 4.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL', plannedDate: '2026-11-15' },
-        { id: 'top-dsa-11', unit: 'Unit 5: Dynamic Programming', sequence: 11, name: 'Memoization, Tabulation & Knapsack', plannedHours: 5.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL', plannedDate: '2026-11-25' },
       ],
     },
     {
       id: 'sub-mirai-web',
-      code: 'CS302',
+      code: 'CS102',
       name: 'Web Development',
       campusId: 'camp-hitech',
       campusName: 'HI-Tech',
       trackId: 'track-mirai',
       trackName: 'Mirai Track',
       batchId: 'batch-hitech-mirai',
-      facultyId: 'usr-fac-gupta',
-      facultyName: 'Aman Srivastava',
+      facultyId: 'usr-fac-varun',
+      facultyName: 'Varun Kumar Sharma',
       targetFinishDate: '2026-12-08',
       color: '#06b6d4',
       recordLabel: null,
@@ -149,13 +155,54 @@ const INITIAL_DATA = {
         { id: 'top-web-4', unit: 'Unit 2: JavaScript Deep Dive', sequence: 4, name: 'Promises, Async/Await & Fetch API', plannedHours: 4.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-09-15' },
         { id: 'top-web-5', unit: 'Unit 3: Component Architecture', sequence: 5, name: 'React Foundations, JSX & Virtual DOM', plannedHours: 5.0, status: 'IN_PROGRESS', percentageComplete: 50, examScope: 'MID_TERM,FINAL', plannedDate: '2026-09-28' },
         { id: 'top-web-6', unit: 'Unit 3: Component Architecture', sequence: 6, name: 'Hooks: useState, useEffect & Custom Hooks', plannedHours: 5.0, status: 'PENDING', percentageComplete: 0, examScope: 'MID_TERM,FINAL', plannedDate: '2026-10-12' },
-        { id: 'top-web-7', unit: 'Unit 4: Backend & APIs', sequence: 7, name: 'Node.js, Express & RESTful Architecture', plannedHours: 5.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL', plannedDate: '2026-11-02' },
-        { id: 'top-web-8', unit: 'Unit 4: Backend & APIs', sequence: 8, name: 'JWT Authentication & Security', plannedHours: 4.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL', plannedDate: '2026-11-16' },
+      ],
+    },
+    {
+      id: 'sub-mirai-dsa1',
+      code: 'DSA-101',
+      name: 'Data Structure and Algorithm 1',
+      campusId: 'camp-hitech',
+      campusName: 'HI-Tech',
+      trackId: 'track-mirai',
+      trackName: 'Mirai Track',
+      batchId: 'batch-hitech-mirai',
+      facultyId: 'usr-fac-sharma',
+      facultyName: 'Vishal Rathee',
+      targetFinishDate: '2026-12-05',
+      color: '#ec4899',
+      recordLabel: null,
+      needsAdminReview: false,
+      topics: [
+        { id: 'top-dsa1-1', unit: 'Unit 1: Arrays & Sorting', sequence: 1, name: 'Arrays, Searching & Sorting Algorithms', plannedHours: 5.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-08-15' },
+        { id: 'top-dsa1-2', unit: 'Unit 2: Stacks & Queues', sequence: 2, name: 'Stack Operations & Infix/Postfix Evaluation', plannedHours: 5.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-09-01' },
+        { id: 'top-dsa1-3', unit: 'Unit 3: Linked Lists', sequence: 3, name: 'Singly and Doubly Linked List Traversal', plannedHours: 5.0, status: 'IN_PROGRESS', percentageComplete: 70, examScope: 'MID_TERM,FINAL', plannedDate: '2026-09-20' },
+        { id: 'top-dsa1-4', unit: 'Unit 4: Trees', sequence: 4, name: 'Binary Trees and BST Search', plannedHours: 6.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL', plannedDate: '2026-10-25' },
+      ],
+    },
+    {
+      id: 'sub-mirai-web-basics',
+      code: 'Web 101',
+      name: 'Internet & Web Basics',
+      campusId: 'camp-hitech',
+      campusName: 'HI-Tech',
+      trackId: 'track-mirai',
+      trackName: 'Mirai Track',
+      batchId: 'batch-hitech-mirai',
+      facultyId: 'usr-fac-varun',
+      facultyName: 'Varun Kumar Sharma',
+      targetFinishDate: '2026-12-10',
+      color: '#3b82f6',
+      recordLabel: null,
+      needsAdminReview: false,
+      topics: [
+        { id: 'top-wb-1', unit: 'Unit 1: Internet Architecture', sequence: 1, name: 'DNS, HTTP/HTTPS, TCP/IP & Client-Server Model', plannedHours: 4.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-08-14' },
+        { id: 'top-wb-2', unit: 'Unit 2: Web Browsers', sequence: 2, name: 'DOM Tree Rendering, Networking & Caching', plannedHours: 4.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-09-05' },
+        { id: 'top-wb-3', unit: 'Unit 3: Web Security', sequence: 3, name: 'CORS, Cookies, LocalStorage & Web Tokens', plannedHours: 4.0, status: 'IN_PROGRESS', percentageComplete: 60, examScope: 'MID_TERM,FINAL', plannedDate: '2026-09-22' },
       ],
     },
     {
       id: 'sub-mirai-prod',
-      code: 'CS303',
+      code: 'PD 101',
       name: 'Product Development',
       campusId: 'camp-hitech',
       campusName: 'HI-Tech',
@@ -164,7 +211,7 @@ const INITIAL_DATA = {
       batchId: 'batch-hitech-mirai',
       facultyId: 'usr-fac-sharma',
       facultyName: 'Vishal Rathee',
-      targetFinishDate: '2026-12-18', // Configured to ensure ON TRACK status (buffer ratio >= 1.15)
+      targetFinishDate: '2026-12-18',
       color: '#10b981',
       recordLabel: null,
       needsAdminReview: false,
@@ -174,12 +221,30 @@ const INITIAL_DATA = {
         { id: 'top-prod-3', unit: 'Unit 2: Wireframing', sequence: 3, name: 'Information Architecture & Wireframing', plannedHours: 4.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-09-12' },
         { id: 'top-prod-4', unit: 'Unit 2: Wireframing', sequence: 4, name: 'Figma Interactive Prototyping', plannedHours: 4.0, status: 'IN_PROGRESS', percentageComplete: 50, examScope: 'MID_TERM,FINAL', plannedDate: '2026-09-29' },
         { id: 'top-prod-5', unit: 'Unit 3: Agile Execution', sequence: 5, name: 'PRD Documentation & User Stories', plannedHours: 4.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL', plannedDate: '2026-10-15' },
-        { id: 'top-prod-6', unit: 'Unit 4: Metrics', sequence: 6, name: 'North Star, Retention & Funnel Analytics', plannedHours: 4.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL', plannedDate: '2026-11-18' },
+      ],
+    },
+    {
+      id: 'sub-mirai-prod-dup',
+      code: 'PD 101',
+      name: 'Product Development',
+      campusId: 'camp-hitech',
+      campusName: 'HI-Tech',
+      trackId: 'track-mirai',
+      trackName: 'Mirai Track',
+      batchId: 'batch-hitech-mirai',
+      facultyId: 'usr-fac-sharma',
+      facultyName: 'Vishal Rathee',
+      targetFinishDate: '2026-12-18',
+      color: '#10b981',
+      recordLabel: 'Duplicate Record Flagged',
+      needsAdminReview: true,
+      topics: [
+        { id: 'top-prod-dup-1', unit: 'Unit 1: Strategy', sequence: 1, name: 'Problem Identification & Design Thinking', plannedHours: 4.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-08-12' },
       ],
     },
 
     // ----------------------------------------------------
-    // HI-TECH · AKTU TRACK SUBJECTS (Assigned from Screenshots)
+    // HI-TECH · AKTU TRACK SUBJECTS (Semester 1)
     // ----------------------------------------------------
     {
       id: 'sub-aktu-iks',
@@ -190,8 +255,8 @@ const INITIAL_DATA = {
       trackId: 'track-aktu',
       trackName: 'AKTU Track',
       batchId: 'batch-hitech-aktu',
-      facultyId: 'usr-fac-himanshu',
-      facultyName: 'Himanshu Sharma Kumar',
+      facultyId: 'usr-fac-gaurav',
+      facultyName: 'Gaurav Singh Singh',
       targetFinishDate: '2026-12-15',
       color: '#f59e0b',
       recordLabel: null,
@@ -241,29 +306,6 @@ const INITIAL_DATA = {
       topics: [
         { id: 'top-phy-1', unit: 'Unit 1: Relativistic Mechanics', sequence: 1, name: 'Lorentz Transformations & Time Dilation', plannedHours: 5.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-08-25' },
         { id: 'top-phy-2', unit: 'Unit 2: Quantum Mechanics', sequence: 2, name: 'Wave Mechanics & Schrodinger Equation', plannedHours: 5.0, status: 'PENDING', percentageComplete: 0, examScope: 'MID_TERM,FINAL', plannedDate: '2026-10-10' },
-      ],
-    },
-    {
-      id: 'sub-aktu-dsa1',
-      code: 'KCS101',
-      name: 'Data Structure and Algorithm 1',
-      campusId: 'camp-hitech',
-      campusName: 'HI-Tech',
-      trackId: 'track-aktu',
-      trackName: 'AKTU Track',
-      batchId: 'batch-hitech-aktu',
-      facultyId: 'usr-fac-sharma',
-      facultyName: 'Vishal Rathee',
-      targetFinishDate: '2026-12-05',
-      color: '#ec4899',
-      recordLabel: null,
-      needsAdminReview: false,
-      topics: [
-        { id: 'top-dsa1-1', unit: 'Unit 1: Arrays & Sorting', sequence: 1, name: 'Arrays, Searching & Sorting Algorithms', plannedHours: 5.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-08-15' },
-        { id: 'top-dsa1-2', unit: 'Unit 2: Stacks & Queues', sequence: 2, name: 'Stack Operations & Infix/Postfix Evaluation', plannedHours: 5.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-09-01' },
-        { id: 'top-dsa1-3', unit: 'Unit 3: Linked Lists', sequence: 3, name: 'Singly and Doubly Linked List Traversal', plannedHours: 5.0, status: 'IN_PROGRESS', percentageComplete: 70, examScope: 'MID_TERM,FINAL', plannedDate: '2026-09-20' },
-        { id: 'top-dsa1-4', unit: 'Unit 4: Trees', sequence: 4, name: 'Binary Trees and BST Search', plannedHours: 6.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL', plannedDate: '2026-10-25' },
-        { id: 'top-dsa1-5', unit: 'Unit 5: Graphs', sequence: 5, name: 'Graph Traversal & Spanning Trees', plannedHours: 6.0, status: 'PENDING', percentageComplete: 0, examScope: 'FINAL', plannedDate: '2026-11-20' },
       ],
     },
     {
@@ -401,24 +443,45 @@ const INITIAL_DATA = {
         { id: 'top-cad-1', unit: 'Unit 1: Orthographic Projections', sequence: 1, name: 'Points, Lines & Solid Planes Projections', plannedHours: 4.0, status: 'COMPLETED', percentageComplete: 100, examScope: 'MID_TERM,FINAL', plannedDate: '2026-08-29' },
       ],
     },
+    {
+      id: 'sub-aktu-resources',
+      code: 'ACAD-RES',
+      name: 'ALL ACAD RESOURCES',
+      campusId: 'camp-hitech',
+      campusName: 'HI-Tech',
+      trackId: 'track-aktu',
+      trackName: 'AKTU Track',
+      batchId: 'batch-hitech-aktu',
+      facultyId: null,
+      facultyName: 'Academic Resources (Dept)',
+      targetFinishDate: '2026-12-20',
+      color: '#475569',
+      recordLabel: null,
+      needsAdminReview: false,
+      topics: [],
+    },
   ],
   timetables: [
     // Mirai Track Recurring Schedule (Mon-Sat)
     { id: 'tt-mon-1', dayOfWeek: 'Monday', startTime: '09:00', endTime: '10:30', subjectId: 'sub-dsa', facultyId: 'usr-fac-sharma', room: 'Lab 101' },
-    { id: 'tt-2', dayOfWeek: 'Monday', startTime: '11:00', endTime: '12:30', subjectId: 'sub-mirai-web', facultyId: 'usr-fac-gupta', room: 'Lab 102' },
+    { id: 'tt-2', dayOfWeek: 'Monday', startTime: '11:00', endTime: '12:30', subjectId: 'sub-mirai-web', facultyId: 'usr-fac-varun', room: 'Lab 102' },
     { id: 'tt-3', dayOfWeek: 'Tuesday', startTime: '09:00', endTime: '10:30', subjectId: 'sub-mirai-prod', facultyId: 'usr-fac-sharma', room: 'Studio A' },
+    { id: 'tt-4', dayOfWeek: 'Tuesday', startTime: '11:00', endTime: '12:30', subjectId: 'sub-mirai-web-basics', facultyId: 'usr-fac-varun', room: 'Lab 103' },
     { id: 'tt-5', dayOfWeek: 'Wednesday', startTime: '09:00', endTime: '10:30', subjectId: 'sub-dsa', facultyId: 'usr-fac-sharma', room: 'Lab 101' },
-    { id: 'tt-6', dayOfWeek: 'Wednesday', startTime: '11:00', endTime: '12:30', subjectId: 'sub-mirai-web', facultyId: 'usr-fac-gupta', room: 'Lab 102' },
+    { id: 'tt-6', dayOfWeek: 'Wednesday', startTime: '11:00', endTime: '12:30', subjectId: 'sub-mirai-web', facultyId: 'usr-fac-varun', room: 'Lab 102' },
+    { id: 'tt-7', dayOfWeek: 'Thursday', startTime: '11:00', endTime: '12:30', subjectId: 'sub-mirai-dsa1', facultyId: 'usr-fac-sharma', room: 'Lab 101' },
     { id: 'tt-8', dayOfWeek: 'Thursday', startTime: '09:00', endTime: '10:30', subjectId: 'sub-mirai-prod', facultyId: 'usr-fac-sharma', room: 'Studio A' },
     { id: 'tt-9', dayOfWeek: 'Friday', startTime: '09:00', endTime: '10:30', subjectId: 'sub-dsa', facultyId: 'usr-fac-sharma', room: 'Lab 101' },
-    { id: 'tt-10', dayOfWeek: 'Friday', startTime: '11:00', endTime: '12:30', subjectId: 'sub-mirai-web', facultyId: 'usr-fac-gupta', room: 'Lab 102' },
+    { id: 'tt-10', dayOfWeek: 'Friday', startTime: '11:00', endTime: '12:30', subjectId: 'sub-mirai-web', facultyId: 'usr-fac-varun', room: 'Lab 102' },
     { id: 'tt-11', dayOfWeek: 'Saturday', startTime: '10:00', endTime: '12:00', subjectId: 'sub-mirai-prod', facultyId: 'usr-fac-sharma', room: 'Auditorium' },
 
     // AKTU Track Timetable Slots
-    { id: 'tt-aktu-1', dayOfWeek: 'Monday', startTime: '14:00', endTime: '15:30', subjectId: 'sub-aktu-dsa1', facultyId: 'usr-fac-sharma', room: 'Hall B' },
+    { id: 'tt-aktu-1', dayOfWeek: 'Monday', startTime: '14:00', endTime: '15:30', subjectId: 'sub-aktu-programming', facultyId: 'usr-fac-sharma', room: 'Hall B' },
+    { id: 'tt-aktu-2', dayOfWeek: 'Tuesday', startTime: '14:00', endTime: '15:30', subjectId: 'sub-aktu-prompt', facultyId: 'usr-fac-sharma', room: 'AI Lab' },
     { id: 'tt-aktu-3', dayOfWeek: 'Wednesday', startTime: '14:00', endTime: '15:30', subjectId: 'sub-aktu-physics', facultyId: 'usr-fac-himanshu', room: 'Physics Lab' },
     { id: 'tt-aktu-4', dayOfWeek: 'Thursday', startTime: '14:00', endTime: '15:30', subjectId: 'sub-aktu-electrical', facultyId: 'usr-fac-gupta', room: 'EE Lab' },
-    { id: 'tt-aktu-5', dayOfWeek: 'Friday', startTime: '14:00', endTime: '15:30', subjectId: 'sub-aktu-iks', facultyId: 'usr-fac-himanshu', room: 'Hall A' },
+    { id: 'tt-aktu-5', dayOfWeek: 'Friday', startTime: '14:00', endTime: '15:30', subjectId: 'sub-aktu-iks', facultyId: 'usr-fac-gaurav', room: 'Hall A' },
+    { id: 'tt-aktu-6', dayOfWeek: 'Saturday', startTime: '14:00', endTime: '15:30', subjectId: 'sub-aktu-math1', facultyId: 'usr-fac-gaurav', room: 'Hall C' },
   ],
   alerts: [
     {
@@ -1988,7 +2051,7 @@ class AppStore {
           <div>
             <div class="alert-title">48-Hour Unlogged Session Escalation</div>
             <div class="alert-desc">
-              1 session for <strong>Computer Networks</strong> conducted yesterday has not been verified. Automated reminder dispatched to Prof. Rajesh Sharma.
+              1 session for <strong>DSA in C++</strong> conducted yesterday has not been verified. Automated reminder dispatched to Vishal Rathee.
             </div>
           </div>
         </div>
@@ -2126,56 +2189,117 @@ class AppStore {
 
   // 4. STUDENT DASHBOARD (Read-Only)
   renderStudentDashboard(container) {
-    const batchSubjects = this.state.subjects.filter((s) => s.batchId === 'batch-hitech-mirai');
-    const calculated = batchSubjects.map((s) =>
+    if (!this.studentTrackFilter) {
+      this.studentTrackFilter = 'all';
+    }
+
+    const allSemesterSubjects = this.state.subjects.filter((s) => !s.needsAdminReview);
+    const filteredSubjects = allSemesterSubjects.filter((s) => {
+      if (this.studentTrackFilter === 'mirai') return s.trackId === 'track-mirai' || s.trackName === 'Mirai Track';
+      if (this.studentTrackFilter === 'aktu') return s.trackId === 'track-aktu' || s.trackName === 'AKTU Track';
+      return true;
+    });
+
+    const calculated = filteredSubjects.map((s) =>
       CalculationEngine.calculateSubject(s, this.state.semester, this.state.timetables)
     );
 
     container.innerHTML = `
       <div style="margin-bottom: 1.25rem;">
         <span class="modal-eyebrow">STUDENT PORTAL · READ-ONLY</span>
-        <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--color-navy);">BTech CSE (AI/ML) · Semester 5 Progress</h2>
-        <p style="font-size: 0.82rem; color: var(--color-text-secondary);">Real-time syllabus completion roadmap and upcoming exam scopes.</p>
+        <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--color-navy);">BTech CSE · Semester 1 Progress</h2>
+        <p style="font-size: 0.82rem; color: var(--color-text-secondary);">Real-time syllabus completion roadmap, assigned faculty, and upcoming exam scopes.</p>
       </div>
 
-      <!-- Upcoming Exam Windows -->
+      <!-- Upcoming Exam Windows (High-Contrast in Light & Dark Mode) -->
       <div class="grid-2" style="margin-bottom: 1.5rem;">
-        <div class="card" style="background: var(--color-navy); color: #fff;">
-          <div style="font-size: 0.72rem; font-weight: 800; color: var(--color-accent); letter-spacing: 0.05em;">UPCOMING EXAMINATION</div>
-          <h3 style="font-size: 1.25rem; font-weight: 800; margin: 0.35rem 0;">Mid-Semester Examinations</h3>
-          <p style="font-size: 0.82rem; color: rgba(255,255,255,0.75);">October 27 – November 03, 2026 • In-Scope: Units 1 & 2 for all subjects.</p>
-          <div style="margin-top: 0.85rem; font-size: 0.82rem; font-weight: 700; color: #fff;">
+        <div class="card student-hero-exam-card">
+          <div style="font-size: 0.72rem; font-weight: 800; color: #818cf8; letter-spacing: 0.05em;">UPCOMING EXAMINATION</div>
+          <h3 style="font-size: 1.25rem; font-weight: 800; margin: 0.35rem 0; color: #ffffff;">Mid-Semester Examinations</h3>
+          <p style="font-size: 0.82rem; color: #cbd5e1;">October 27 – November 03, 2026 • In-Scope: Units 1 & 2 for all subjects.</p>
+          <div style="margin-top: 0.85rem; font-size: 0.82rem; font-weight: 700; color: #38bdf8;">
             ⏳ 8 calendar days remaining
           </div>
         </div>
 
-        <div class="card" style="background: var(--color-surface); border: 1px solid var(--color-accent-border);">
+        <div class="card student-finals-exam-card">
           <div style="font-size: 0.72rem; font-weight: 800; color: var(--color-text-muted); letter-spacing: 0.05em;">FINAL EXAMINATIONS</div>
           <h3 style="font-size: 1.25rem; font-weight: 800; margin: 0.35rem 0; color: var(--color-navy);">End-Semester Finals</h3>
-          <p style="font-size: 0.82rem; color: var(--color-text-secondary);">December 10 – December 20, 2026 • Full Semester Syllabus.</p>
+          <p style="font-size: 0.82rem; color: var(--color-text-secondary);">December 10 – December 20, 2026 • Full Semester 1 Syllabus.</p>
           <div style="margin-top: 0.85rem; font-size: 0.82rem; font-weight: 700; color: var(--color-accent);">
             ⏳ 52 calendar days remaining
           </div>
         </div>
       </div>
 
-      <!-- Subjects Roadmap -->
+      <!-- Semester 1 Track Filter Tabs -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+        <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--color-navy); margin: 0;">My Subjects</h3>
+        <div class="track-tabs-container" style="margin-bottom: 0;">
+          <button type="button" class="track-tab ${this.studentTrackFilter === 'all' ? 'active' : ''}" onclick="app.setStudentTrackFilter('all')">
+            <span>📚 All Subjects (${allSemesterSubjects.length})</span>
+          </button>
+          <button type="button" class="track-tab ${this.studentTrackFilter === 'mirai' ? 'active' : ''}" onclick="app.setStudentTrackFilter('mirai')">
+            <span>🚀 Mirai Track</span>
+          </button>
+          <button type="button" class="track-tab ${this.studentTrackFilter === 'aktu' ? 'active' : ''}" onclick="app.setStudentTrackFilter('aktu')">
+            <span>🏛️ AKTU Track</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Student Subjects Cards Grid (Matches Portal View) -->
+      <div class="grid-3" style="margin-bottom: 2rem;">
+        ${calculated.map((s) => `
+          <div class="card student-subject-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: var(--color-success); font-size: 0.7rem; font-weight: 800;">Core</span>
+              <span class="badge" style="background: ${s.trackId === 'track-mirai' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(245, 158, 11, 0.15)'}; color: ${s.trackId === 'track-mirai' ? 'var(--color-accent)' : '#f59e0b'}; font-size: 0.65rem;">
+                ${s.trackName || (s.trackId === 'track-mirai' ? 'Mirai Track' : 'AKTU Track')}
+              </span>
+            </div>
+            <h4 style="font-size: 1.05rem; font-weight: 800; color: var(--color-navy); margin-bottom: 0.25rem;">${s.name}</h4>
+            <div style="font-size: 0.8rem; color: var(--color-text-secondary); margin-bottom: 0.85rem;">
+              ${s.facultyName || 'Departmental Faculty'}
+              ${s.code ? `<span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-text-muted); margin-left: 0.4rem;">(${s.code})</span>` : ''}
+            </div>
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--color-text-secondary); margin-bottom: 0.35rem;">
+                <span>Syllabus Covered</span>
+                <strong>${s.coveragePercentage}%</strong>
+              </div>
+              <div class="progress-bar-wrap">
+                <div class="progress-bar-fill fill-${s.status === 'DANGER' ? 'red' : 'green'}" style="width: ${s.coveragePercentage}%"></div>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+
+      <!-- Subjects Roadmap Table -->
       <h3 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 0.85rem; color: var(--color-navy);">Subject Completion Roadmap</h3>
       <div class="table-responsive">
         <table class="custom-table">
           <thead>
             <tr>
               <th>Subject</th>
-              <th>Faculty</th>
+              <th>Track</th>
+              <th>Assigned Faculty</th>
               <th>Syllabus Covered</th>
               <th>Status</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
             ${calculated.map((s) => `
               <tr>
-                <td><strong>${s.name}</strong></td>
-                <td>${s.facultyName}</td>
+                <td><strong>${s.name}</strong> ${s.code ? `<code>${s.code}</code>` : ''}</td>
+                <td>
+                  <span class="badge" style="background: ${s.trackId === 'track-mirai' ? 'rgba(99, 102, 241, 0.12)' : 'rgba(245, 158, 11, 0.12)'}; color: ${s.trackId === 'track-mirai' ? 'var(--color-accent)' : '#f59e0b'};">
+                    ${s.trackId === 'track-mirai' ? 'Mirai Track' : 'AKTU Track'}
+                  </span>
+                </td>
+                <td>${s.facultyName || 'Departmental Faculty'}</td>
                 <td>
                   <div style="display: flex; align-items: center; gap: 0.75rem;">
                     <div class="progress-bar-wrap" style="width: 120px;">
@@ -2185,12 +2309,21 @@ class AppStore {
                   </div>
                 </td>
                 <td><span class="badge ${this.getStatusBadgeClass(s.status)}">${s.status}</span></td>
+                <td>
+                  <button class="btn btn-secondary btn-sm" onclick="app.openExplainModal('${s.subjectId}')">View Details</button>
+                </td>
               </tr>
             `).join('')}
           </tbody>
         </table>
       </div>
     `;
+  }
+
+  setStudentTrackFilter(filter) {
+    this.studentTrackFilter = filter;
+    const container = document.getElementById('viewContainer');
+    if (container) this.renderStudentDashboard(container);
   }
 
   // 5. SUBJECTS & SYLLABUS DETAIL VIEW
@@ -2461,7 +2594,7 @@ class AppStore {
         <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--color-navy); margin-bottom: 0.85rem;">📋 Faculty Session Logging Alerts</h3>
         <div style="display: flex; flex-direction: column; gap: 0.85rem;">
           ${alerts.map((a) => `
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--color-border); background: ${a.status === 'ACKNOWLEDGED' ? 'var(--color-surface-subtle)' : '#ffffff'};">
+            <div class="alert-desk-item ${a.status === 'ACKNOWLEDGED' ? 'acknowledged' : 'unread'}" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--color-border); background: ${a.status === 'ACKNOWLEDGED' ? 'var(--color-surface-subtle)' : 'var(--color-surface)'};">
               <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
                 <span style="font-size: 1.4rem;">${a.level === 'danger' ? '🚨' : '⏰'}</span>
                 <div>
@@ -3481,7 +3614,8 @@ class AppStore {
   showGoogleSimulatedPicker() {
     // Elegant fallback simulated Google Account chooser for offline / non-SSL environments
     const mockGoogleEmails = [
-      { name: 'Prof. Rajesh Sharma', email: 'faculty.sharma@mirai.edu' },
+      { name: 'Vishal Rathee', email: 'faculty.sharma@mirai.edu' },
+      { name: 'Varun Kumar Sharma', email: 'faculty.varun@mirai.edu' },
       { name: 'Dr. Suresh Varma', email: 'admin@mirai.edu' },
       { name: 'Priya Nair', email: 'manager.hitech@mirai.edu' },
       { name: 'Aarav Mehta', email: 'student.aarav@mirai.edu' },
