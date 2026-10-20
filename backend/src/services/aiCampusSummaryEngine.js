@@ -1,5 +1,6 @@
 import { db } from '../db.js';
 import { CalculationEngine } from './calculationEngine.js';
+import { LlmClient } from './llmClient.js';
 
 export class AiCampusSummaryEngine {
   /**
@@ -157,12 +158,25 @@ export class AiCampusSummaryEngine {
       });
     }
 
-    // 4. Construct Human-Readable Summary Narrative
-    const totalCount = subjects.length;
-    const slippingCount = slippingSubjects.length;
-    const onTrackCount = totalCount - slippingCount;
+    // 4. Construct Human-Readable Summary Narrative (LLM Assisted or Rule Grounded)
+    let llmSummary = null;
+    try {
+      llmSummary = await LlmClient.generateCampusSummaryNarrative({
+        campusName: campus.name,
+        slippingSubjects,
+        totalSubjects: totalCount,
+        onTrackCount,
+      });
+    } catch {
+      llmSummary = null;
+    }
 
-    let narrative = `### Weekly Academic Progression Summary (${startStr} to ${endStr})\n`;
+    let narrative = '';
+    if (llmSummary?.narrative) {
+      narrative = `> 🤖 *Synthesized by ${llmSummary.llmProvider.toUpperCase()} (${llmSummary.llmModel}) with grounded academic constraints.*\n\n${llmSummary.narrative}\n\n---\n\n`;
+    }
+
+    narrative += `### Weekly Academic Progression Summary (${startStr} to ${endStr})\n`;
     narrative += `**Campus:** ${campus.name} | **Active Subjects:** ${totalCount} | **On-Track:** ${onTrackCount} | **Slipping/At-Risk:** ${slippingCount}\n\n`;
 
     if (slippingCount === 0) {
